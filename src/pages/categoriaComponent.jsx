@@ -16,7 +16,7 @@ import { InputText } from 'primereact/inputtext';
 import { Tag } from 'primereact/tag';
 import SideBarPage from './SideBarPage';
 
-export default function ProductoComponent() {
+export default function categoriaComponent() {
 
 
     // let emptyProduct = {
@@ -36,8 +36,7 @@ export default function ProductoComponent() {
         id: null,
         nombre: '',
         descripcion: '',
-        id_categoria: null,
-        precio: 0,
+    
     };
 
 
@@ -59,35 +58,12 @@ export default function ProductoComponent() {
     //     ProductService.getProducts().then((data) => setProducts(data));
     // }, []);
 
+
+
     useEffect(() => {
         // Realiza una solicitud GET a la API externa usando fetch
         // fetch('https://fakestoreapi.com/products')
         fetch('http://localhost:8080/categoria')
-
-          .then((response) => {
-            // Verifica si la solicitud fue exitosa y obtén los datos
-            if (response.ok) {
-              return response.json(); // Convierte la respuesta a JSON
-            } else {
-              throw new Error('Error en la solicitud a la API');
-            }
-          })
-          .then((data) => {
-            // Almacena los datos en el estado local
-            console.log(data);
-            setCategorias(data);
-          })
-          .catch((error) => {
-            console.error('Error al obtener datos de la API:', error);
-          });
-      }, []);
-
-
-
-    useEffect(() => {
-        // Realiza una solicitud GET a la API externa usando fetch
-        // fetch('https://fakestoreapi.com/products')
-        fetch('http://localhost:8080/producto/index')
 
           .then((response) => {
             // Verifica si la solicitud fue exitosa y obtén los datos
@@ -131,66 +107,30 @@ export default function ProductoComponent() {
         setDeleteProductsDialog(false);
     };
 
+
+
+
     const saveProduct = () => {
         setSubmitted(true);
-
-        console.log('Datos de product antes de guardar:', product);
+        console.log(product);
         if (product.nombre.trim()) {
             let _products = [...products];
             let _product = { ...product };
+            
+            // console.log("base");
+            // console.log(_product);
+            if (product.id) {
+                const index = findIndexById(product.id);
 
-            if (product.cod) {
-
-
-                const datos = {
-                    nombre: product.nombre,
-                    descripcion: product.descripcion,
-                    id_categoria: product.id_categoria,
-                    precio: product.precio,
-                };
-                console.log(datos);
-
-                fetch('http://localhost:8080/producto/update/'+product.cod, {
-                    method: 'PUT',
-                    headers: {
-                    'Content-Type': 'application/json',
-                         },
-                            body: JSON.stringify(datos),
-                                })
-                                .then((response) => {
-                                if (response.ok) {
-                                     return response.json();
-                                 } else {
-                                    throw new Error('Error en la solicitud a la API');
-                                }
-                                })
-
-
+                _products[index] = _product;
                 toast.current.show({ severity: 'success', summary: 'Successful', detail: 'Product Updated', life: 3000 });
             } else {
 
-                const datos = {
-                    nombre: product.nombre,
-                    descripcion: product.descripcion,
-                    id_categoria: product.id_categoria,
-                    precio: product.precio,
-                };
+                
 
-                fetch('http://localhost:8080/producto/create', {
-                    method: 'POST',
-                    headers: {
-                    'Content-Type': 'application/json',
-                         },
-                            body: JSON.stringify(datos),
-                                })
-                                .then((response) => {
-                                if (response.ok) {
-                                     return response.json();
-                                 } else {
-                                    throw new Error('Error en la solicitud a la API');
-                                }
-                                })
-
+                console.log(_product);
+                _product.id = createId();
+                _products.push(_product);
                 toast.current.show({ severity: 'success', summary: 'Successful', detail: 'Product Created', life: 3000 });
             }
 
@@ -199,9 +139,7 @@ export default function ProductoComponent() {
             setProduct(emptyProduct);
         }
     };
-
-
-
+    
 
     const editProduct = (product) => {
         console.log(product);
@@ -210,18 +148,12 @@ export default function ProductoComponent() {
     };
 
     const confirmDeleteProduct = (product) => {
-        console.log(product);
         setProduct(product);
         setDeleteProductDialog(true);
     };
 
     const deleteProduct = () => {
-
-        
-
-        let _products = products.filter((val) => val.cod !== product.cod);
-
-        console.log(products);
+        let _products = products.filter((val) => val.id !== product.id);
 
         setProducts(_products);
         setDeleteProductDialog(false);
@@ -264,7 +196,6 @@ export default function ProductoComponent() {
     const deleteSelectedProducts = () => {
         let _products = products.filter((val) => !selectedProducts.includes(val));
 
-        
         setProducts(_products);
         setDeleteProductsDialog(false);
         setSelectedProducts(null);
@@ -312,6 +243,11 @@ export default function ProductoComponent() {
 
 
 
+    const priceBodyTemplate = (rowData) => {
+        return formatCurrency(rowData.price);
+    };
+
+
     const actionBodyTemplate = (rowData) => {
         return (
             <React.Fragment>
@@ -350,23 +286,19 @@ export default function ProductoComponent() {
 
 
 
-    //eliminar solo 1
+
     const deleteProductDialogFooter = (
         <React.Fragment>
             <Button label="No" icon="pi pi-times" outlined onClick={hideDeleteProductDialog} />
             <Button label="Yes" icon="pi pi-check" severity="danger" onClick={deleteProduct} />
         </React.Fragment>
     );
-
-    // eliminar por lote
     const deleteProductsDialogFooter = (
         <React.Fragment>
             <Button label="No" icon="pi pi-times" outlined onClick={hideDeleteProductsDialog} />
             <Button label="Yes" icon="pi pi-check" severity="danger" onClick={deleteSelectedProducts} />
         </React.Fragment>
     );
-
-    
 
     return (
         <div>
@@ -376,20 +308,15 @@ export default function ProductoComponent() {
                 <Toolbar className="mb-4" left={leftToolbarTemplate} right={rightToolbarTemplate}></Toolbar>
 
                 <DataTable ref={dt} value={products} selection={selectedProducts} onSelectionChange={(e) => setSelectedProducts(e.value)}
-                        dataKey="cod"  paginator rows={10} rowsPerPageOptions={[5, 10, 25]}
+                        dataKey="id"  paginator rows={10} rowsPerPageOptions={[5, 10, 25]}
                         paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
                         currentPageReportTemplate="Showing {first} to {last} of {totalRecords} products" globalFilter={globalFilter} header={header}>
 
 
                     <Column selectionMode="multiple" exportable={false}></Column>
-                    <Column field="cod" header="Codigo" sortable style={{ minWidth: '12rem' }}></Column>
+                    <Column field="id"  header="Codigo" sortable style={{ display: 'none' }}></Column>
                     <Column field="nombre" header="Nombre" sortable style={{ minWidth: '16rem' }}></Column>
                     <Column field="descripcion" header="Descripcion" ></Column>
-                    <Column field="precio" header="Precio" sortable style={{ minWidth: '8rem' }}></Column>
-
-                    <Column field="id_categoria"  style={{ display: 'none' }}></Column>
-
-                    <Column field="categoria" header="Categoria" sortable style={{ minWidth: '10rem' }}></Column>
                     <Column body={actionBodyTemplate} exportable={false} style={{ minWidth: '12rem' }}></Column>
                 </DataTable>
             </div>
@@ -397,7 +324,8 @@ export default function ProductoComponent() {
 
 
             {/* crear uno nuevo */}
-            <Dialog visible={productDialog} style={{ width: '32rem' }} breakpoints={{ '960px': '75vw', '641px': '90vw' }} header="Detalle de producto" modal className="p-fluid" footer={productDialogFooter} onHide={hideDialog}>
+            <Dialog visible={productDialog} style={{ width: '32rem' }} breakpoints={{ '960px': '75vw', '641px': '90vw' }} header="Detalle de categoria" modal className="p-fluid" footer={productDialogFooter} onHide={hideDialog}>
+                
                 
                 {/* nombre */}
                 
@@ -418,56 +346,30 @@ export default function ProductoComponent() {
                 </div>
 
 
-                {/* categoria */}
-                <div className="field">
-                    <label className="mb-3 font-bold">Categoria</label>
-                    <div className="formgrid grid">
-                        {categorias.map((categoria) => (
-                        <div className="field-radiobutton col-6" key={categoria.id}>
-                            <RadioButton inputId={`categoria${categoria.id}`} name="categoria" value={categoria.id} onChange={onCategoryChange} checked={product.id_categoria === categoria.id}/>
-                            <label htmlFor={`categoria${categoria.id}`}>{categoria.nombre}</label>
-                        </div>
-                        ))}
-                    </div>
-                </div>
-
-
-
-                
-                {/* precio */}
-                <div className="formgrid grid">
-                    <div className="field col">
-                        <label htmlFor="precio" className="font-bold">
-                            Precio
-                        </label>
-                        <InputNumber id="precio" value={product.precio} onValueChange={(e) => onInputNumberChange(e, 'precio')} mode="currency" currency="USD" locale="en-US" />
-                    </div>
-                    
-                </div>
+              
             </Dialog> 
 
 
 
            
-            {/* eliminar solo uno */}
-            <Dialog visible={deleteProductDialog} style={{ width: '32rem' }} breakpoints={{ '960px': '75vw', '641px': '90vw' }} header="Confirm" modal footer={deleteProductDialogFooter} onHide={hideDeleteProductDialog}>
+
+            {/* <Dialog visible={deleteProductDialog} style={{ width: '32rem' }} breakpoints={{ '960px': '75vw', '641px': '90vw' }} header="Confirm" modal footer={deleteProductDialogFooter} onHide={hideDeleteProductDialog}>
                 <div className="confirmation-content">
                     <i className="pi pi-exclamation-triangle mr-3" style={{ fontSize: '2rem' }} />
                     {product && (
                         <span>
-                            Are you sure you want to delete <b>{product.nombre}</b>?
+                            Are you sure you want to delete <b>{product.name}</b>?
                         </span>
                     )}
                 </div>
-            </Dialog>
+            </Dialog> */}
 
-            {/* eliminar por lote */}
-            <Dialog visible={deleteProductsDialog} style={{ width: '32rem' }} breakpoints={{ '960px': '75vw', '641px': '90vw' }} header="Confirm" modal footer={deleteProductsDialogFooter} onHide={hideDeleteProductsDialog}>
+            {/* <Dialog visible={deleteProductsDialog} style={{ width: '32rem' }} breakpoints={{ '960px': '75vw', '641px': '90vw' }} header="Confirm" modal footer={deleteProductsDialogFooter} onHide={hideDeleteProductsDialog}>
                 <div className="confirmation-content">
                     <i className="pi pi-exclamation-triangle mr-3" style={{ fontSize: '2rem' }} />
                     {product && <span>Are you sure you want to delete the selected products?</span>}
                 </div>
-            </Dialog>
+            </Dialog> */}
         </div>
     );
 }

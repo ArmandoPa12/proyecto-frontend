@@ -10,7 +10,12 @@ import ProductsDemo from "./pages/TableProductosPage";
 import SideBarPage from "./pages/SideBarPage";
 import Page from "./pages/Page";
 import UsersDemo from "./pages/datatable";
+
 import ProductoComponent from "./pages/pruductoComponent";
+import CategoriaComponent from "./pages/categoriaComponent";
+import ProveedorComponent from "./pages/proveedorComponent";
+import InventarioComponent from "./pages/inventarioComponent";
+
 
 function App() {
   return (
@@ -24,6 +29,12 @@ function App() {
 
 
           <Route path="/producto" element={<ProductoComponent />} />
+          <Route path="/categoria" element={<CategoriaComponent />} />
+          <Route path="/proveedor" element={<ProveedorComponent />} />
+          <Route path="/inventario" element={<InventarioComponent />} />
+
+
+
 
         </Routes>
       </BrowserRouter>

@@ -108,13 +108,15 @@ export default function UsersDemo() {
     setSubmitted(true);
 
     if (product.nombre.trim()) {
-      console.log(products);
-      console.log(product);
+      // console.log(products);
+      // console.log(product);
       let _products = [...products];
       let _product = { ...product };
 
       if (product.id) {
+        console.log(product);
         const index = findIndexById(product.id);
+        console.log(product);
 
         _products[index] = _product;
         toast.current.show({

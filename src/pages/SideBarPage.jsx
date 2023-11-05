@@ -35,11 +35,19 @@ export default function SideBarPage() {
           icon: "pi pi-fw pi-plus",
         },
         {
-          label: "Delete",
-          icon: "pi pi-fw pi-user-minus",
+          label: <Link to="/producto">producto</Link>,
+          icon: "pi pi-fw pi-plus",
         },
         {
-          label: <Link to="/producto">producto</Link>,
+          label: <Link to="/categoria">Categoria</Link>,
+          icon: "pi pi-fw pi-plus",
+        },
+        {
+          label: <Link to="/proveedor">Proveedor</Link>,
+          icon: "pi pi-fw pi-plus",
+        },
+        {
+          label: <Link to="/inventario">Invantario</Link>,
           icon: "pi pi-fw pi-plus",
         },
       ],

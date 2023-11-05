@@ -16,7 +16,7 @@ import { InputText } from 'primereact/inputtext';
 import { Tag } from 'primereact/tag';
 import SideBarPage from './SideBarPage';
 
-export default function ProductoComponent() {
+export default function categoriaComponent() {
 
 
     // let emptyProduct = {
@@ -34,10 +34,9 @@ export default function ProductoComponent() {
 
     let emptyProduct = {
         id: null,
-        nombre: '',
-        descripcion: '',
-        id_categoria: null,
-        precio: 0,
+        empresa: '',
+        telefono: '',
+    
     };
 
 
@@ -59,35 +58,12 @@ export default function ProductoComponent() {
     //     ProductService.getProducts().then((data) => setProducts(data));
     // }, []);
 
-    useEffect(() => {
-        // Realiza una solicitud GET a la API externa usando fetch
-        // fetch('https://fakestoreapi.com/products')
-        fetch('http://localhost:8080/categoria')
-
-          .then((response) => {
-            // Verifica si la solicitud fue exitosa y obtén los datos
-            if (response.ok) {
-              return response.json(); // Convierte la respuesta a JSON
-            } else {
-              throw new Error('Error en la solicitud a la API');
-            }
-          })
-          .then((data) => {
-            // Almacena los datos en el estado local
-            console.log(data);
-            setCategorias(data);
-          })
-          .catch((error) => {
-            console.error('Error al obtener datos de la API:', error);
-          });
-      }, []);
-
 
 
     useEffect(() => {
         // Realiza una solicitud GET a la API externa usando fetch
         // fetch('https://fakestoreapi.com/products')
-        fetch('http://localhost:8080/producto/index')
+        fetch('http://localhost:8080/proveedor')
 
           .then((response) => {
             // Verifica si la solicitud fue exitosa y obtén los datos
@@ -131,74 +107,169 @@ export default function ProductoComponent() {
         setDeleteProductsDialog(false);
     };
 
-    const saveProduct = () => {
+
+
+    const saveProductEdit = () => {
         setSubmitted(true);
-
-        console.log('Datos de product antes de guardar:', product);
+    
         if (product.nombre.trim()) {
-            let _products = [...products];
-            let _product = { ...product };
-
-            if (product.cod) {
-
-
-                const datos = {
-                    nombre: product.nombre,
-                    descripcion: product.descripcion,
-                    id_categoria: product.id_categoria,
-                    precio: product.precio,
-                };
-                console.log(datos);
-
-                fetch('http://localhost:8080/producto/update/'+product.cod, {
-                    method: 'PUT',
-                    headers: {
+            // Crea un objeto de datos para enviar en la solicitud POST
+            const data = {
+                id: product.id,
+                nombre: product.nombre,
+                descripcion: product.descripcion,
+                id_categoria: product.id_categoria,
+                precio: product.precio,
+                // Otras propiedades de product que desees incluir
+            };
+    
+            // Realiza la solicitud POST a tu API
+            fetch('http://localhost:8080/producto/update', {
+                method: 'PUT',
+                headers: {
                     'Content-Type': 'application/json',
-                         },
-                            body: JSON.stringify(datos),
-                                })
-                                .then((response) => {
-                                if (response.ok) {
-                                     return response.json();
-                                 } else {
-                                    throw new Error('Error en la solicitud a la API');
-                                }
-                                })
-
-
-                toast.current.show({ severity: 'success', summary: 'Successful', detail: 'Product Updated', life: 3000 });
-            } else {
-
-                const datos = {
-                    nombre: product.nombre,
-                    descripcion: product.descripcion,
-                    id_categoria: product.id_categoria,
-                    precio: product.precio,
-                };
-
-                fetch('http://localhost:8080/producto/create', {
-                    method: 'POST',
-                    headers: {
-                    'Content-Type': 'application/json',
-                         },
-                            body: JSON.stringify(datos),
-                                })
-                                .then((response) => {
-                                if (response.ok) {
-                                     return response.json();
-                                 } else {
-                                    throw new Error('Error en la solicitud a la API');
-                                }
-                                })
-
-                toast.current.show({ severity: 'success', summary: 'Successful', detail: 'Product Created', life: 3000 });
-            }
-
-            setProducts(_products);
-            setProductDialog(false);
-            setProduct(emptyProduct);
+                },
+                body: JSON.stringify(data),
+            })
+            .then((response) => {
+                if (response.ok) {
+                    return response.json();
+                } else {
+                    throw new Error('Error en la solicitud a la API');
+                }
+            })
+            .then((responseData) => {
+                // Maneja la respuesta de la API si es necesario
+                console.log('Respuesta de la API:', responseData);
+    
+                // Actualiza el estado local o realiza otras acciones según sea necesario
+                let _products = [...products];
+                let _product = { ...product };
+    
+                if (product.id) {
+                    const index = findIndexById(product.id);
+    
+                    _products[index] = _product;
+                    toast.current.show({ severity: 'success', summary: 'Successful', detail: 'Product Updated', life: 3000 });
+                } else {
+                    _product.id = createId();
+                    _product.image = 'product-placeholder.svg';
+                    _products.push(_product);
+                    toast.current.show({ severity: 'success', summary: 'Successful', detail: 'Product Created', life: 3000 });
+                }
+    
+                setProducts(_products);
+                setProductDialog(false);
+                setProduct(emptyProduct);
+            })
+            .catch((error) => {
+                console.error('Error al enviar datos a la API:', error);
+                // Maneja los errores si es necesario
+            });
         }
     };
+
+
+    const saveProduct = () => {
+        setSubmitted(true);
+    
+        if (product.empresa.trim()) {
+            let _products = [...products];
+            let _product = { ...product };
+            
+            console.log("base");
+            console.log(_product);
+            if (_product.cod) {
+                // Realiza una solicitud PUT si el producto tiene un id
+                updateProduct(_product)
+                    .then((updatedProduct) => {
+                        const index = findIndexById(updatedProduct.id);
+    
+                        _products[index] = updatedProduct;
+                        toast.current.show({ severity: 'success', summary: 'Successful', detail: 'Product Updated', life: 3000 });
+                        setProducts(_products);
+                        setProductDialog(false);
+                        setProduct(emptyProduct);
+                    })
+                    .catch((error) => {
+                        console.error('Error al actualizar el producto:', error);
+                        // Maneja el error, muestra una notificación de error, etc.
+                    });
+            } else {
+                // Realiza una solicitud POST si el producto no tiene un id
+                
+                createProduct(_product)
+                    .then((createdProduct) => {
+                        
+                        _products.push(createdProduct);
+                        toast.current.show({ severity: 'success', summary: 'Successful', detail: 'Product Created', life: 3000 });
+                        setProducts(_products);
+                        setProductDialog(false);
+                        setProduct(emptyProduct);
+                    })
+                    .catch((error) => {
+                        console.error('Error al crear el producto:', error);
+                        // Maneja el error, muestra una notificación de error, etc.
+                    });
+            }
+        }
+    };
+    
+    // Función para actualizar un producto (PUT)
+    const updateProduct = (product) => {
+        // Realiza una solicitud PUT a la API con el producto a actualizar
+        const data = {
+            nombre: product.nombre,
+            descripcion: product.descripcion,
+            id_categoria: product.id_categoria,
+            precio: product.precio,
+        };
+        console.log("funcion update");
+        console.log(product);
+        return fetch('http://localhost:8080/producto/update/' + product.cod, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(data),
+        })
+            .then((response) => {
+                if (response.ok) {
+                    return response.json();
+                } else {
+                    throw new Error('Error en la solicitud PUT a la API');
+                }
+            });
+    };
+    
+    // Función para crear un nuevo producto (POST)
+    const createProduct = (product) => {
+        // Realiza una solicitud POST a la API con el nuevo producto
+
+        const data = {
+                        nombre: product.nombre,
+                        descripcion: product.descripcion,
+                        id_categoria: product.id_categoria,
+                        precio: product.precio,
+                    };
+        
+        return fetch('http://localhost:8080/producto/create', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(data),
+        })
+            .then((response) => {
+                if (response.ok) {
+                    return response.json();
+                } else {
+                    throw new Error('Error en la solicitud POST a la API');
+                }
+            });
+    };
+    
+
 
 
 
@@ -210,18 +281,12 @@ export default function ProductoComponent() {
     };
 
     const confirmDeleteProduct = (product) => {
-        console.log(product);
         setProduct(product);
         setDeleteProductDialog(true);
     };
 
     const deleteProduct = () => {
-
-        
-
-        let _products = products.filter((val) => val.cod !== product.cod);
-
-        console.log(products);
+        let _products = products.filter((val) => val.id !== product.id);
 
         setProducts(_products);
         setDeleteProductDialog(false);
@@ -264,7 +329,6 @@ export default function ProductoComponent() {
     const deleteSelectedProducts = () => {
         let _products = products.filter((val) => !selectedProducts.includes(val));
 
-        
         setProducts(_products);
         setDeleteProductsDialog(false);
         setSelectedProducts(null);
@@ -312,6 +376,11 @@ export default function ProductoComponent() {
 
 
 
+    const priceBodyTemplate = (rowData) => {
+        return formatCurrency(rowData.price);
+    };
+
+
     const actionBodyTemplate = (rowData) => {
         return (
             <React.Fragment>
@@ -350,23 +419,19 @@ export default function ProductoComponent() {
 
 
 
-    //eliminar solo 1
+
     const deleteProductDialogFooter = (
         <React.Fragment>
             <Button label="No" icon="pi pi-times" outlined onClick={hideDeleteProductDialog} />
             <Button label="Yes" icon="pi pi-check" severity="danger" onClick={deleteProduct} />
         </React.Fragment>
     );
-
-    // eliminar por lote
     const deleteProductsDialogFooter = (
         <React.Fragment>
             <Button label="No" icon="pi pi-times" outlined onClick={hideDeleteProductsDialog} />
             <Button label="Yes" icon="pi pi-check" severity="danger" onClick={deleteSelectedProducts} />
         </React.Fragment>
     );
-
-    
 
     return (
         <div>
@@ -376,20 +441,15 @@ export default function ProductoComponent() {
                 <Toolbar className="mb-4" left={leftToolbarTemplate} right={rightToolbarTemplate}></Toolbar>
 
                 <DataTable ref={dt} value={products} selection={selectedProducts} onSelectionChange={(e) => setSelectedProducts(e.value)}
-                        dataKey="cod"  paginator rows={10} rowsPerPageOptions={[5, 10, 25]}
+                        dataKey="id"  paginator rows={10} rowsPerPageOptions={[5, 10, 25]}
                         paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
                         currentPageReportTemplate="Showing {first} to {last} of {totalRecords} products" globalFilter={globalFilter} header={header}>
 
 
                     <Column selectionMode="multiple" exportable={false}></Column>
-                    <Column field="cod" header="Codigo" sortable style={{ minWidth: '12rem' }}></Column>
-                    <Column field="nombre" header="Nombre" sortable style={{ minWidth: '16rem' }}></Column>
-                    <Column field="descripcion" header="Descripcion" ></Column>
-                    <Column field="precio" header="Precio" sortable style={{ minWidth: '8rem' }}></Column>
-
-                    <Column field="id_categoria"  style={{ display: 'none' }}></Column>
-
-                    <Column field="categoria" header="Categoria" sortable style={{ minWidth: '10rem' }}></Column>
+                    <Column field="id"  header="Codigo" sortable style={{ display: 'none' }}></Column>
+                    <Column field="empresa" header="Empresa" sortable style={{ minWidth: '16rem' }}></Column>
+                    <Column field="telefono" header="Telefono" ></Column>
                     <Column body={actionBodyTemplate} exportable={false} style={{ minWidth: '12rem' }}></Column>
                 </DataTable>
             </div>
@@ -397,77 +457,52 @@ export default function ProductoComponent() {
 
 
             {/* crear uno nuevo */}
-            <Dialog visible={productDialog} style={{ width: '32rem' }} breakpoints={{ '960px': '75vw', '641px': '90vw' }} header="Detalle de producto" modal className="p-fluid" footer={productDialogFooter} onHide={hideDialog}>
+            <Dialog visible={productDialog} style={{ width: '32rem' }} breakpoints={{ '960px': '75vw', '641px': '90vw' }} header="Detalle de la empresa" modal className="p-fluid" footer={productDialogFooter} onHide={hideDialog}>
+                {product.image && <img src={`https://primefaces.org/cdn/primereact/images/product/${product.image}`} alt={product.image} className="product-image block m-auto pb-3" />}
                 
                 {/* nombre */}
                 
                 <div className="field">
-                    <label htmlFor="nombre" className="font-bold">
-                        Nombre
+                    <label htmlFor="empresa" className="font-bold">
+                        Empresa
                     </label>
-                    <InputText id="nombre" value={product.nombre} onChange={(e) => onInputChange(e, 'nombre')} required autoFocus className={classNames({ 'p-invalid': submitted && !product.nombre })} />
-                    {submitted && !product.name && <small className="p-error">Nombre es requerido.</small>}
+                    <InputText id="empresa" value={product.empresa} onChange={(e) => onInputChange(e, 'empresa')} required autoFocus className={classNames({ 'p-invalid': submitted && !product.empresa })} />
+                    {submitted && !product.empresa && <small className="p-error">Empresa es requerido.</small>}
                 </div>
 
                 {/* descripcion */}
                 <div className="field">
-                    <label htmlFor="descripcion" className="font-bold">
-                        Descripcion
+                    <label htmlFor="telefono" className="font-bold">
+                        Telefono
                     </label>
-                    <InputTextarea id="descripcion" value={product.descripcion} onChange={(e) => onInputChange(e, 'descripcion')} required rows={3} cols={20} />
+                    <InputTextarea id="telefono" value={product.telefono} onChange={(e) => onInputChange(e, 'telefono')} required rows={3} cols={20} />
                 </div>
 
 
-                {/* categoria */}
-                <div className="field">
-                    <label className="mb-3 font-bold">Categoria</label>
-                    <div className="formgrid grid">
-                        {categorias.map((categoria) => (
-                        <div className="field-radiobutton col-6" key={categoria.id}>
-                            <RadioButton inputId={`categoria${categoria.id}`} name="categoria" value={categoria.id} onChange={onCategoryChange} checked={product.id_categoria === categoria.id}/>
-                            <label htmlFor={`categoria${categoria.id}`}>{categoria.nombre}</label>
-                        </div>
-                        ))}
-                    </div>
-                </div>
-
-
-
-                
-                {/* precio */}
-                <div className="formgrid grid">
-                    <div className="field col">
-                        <label htmlFor="precio" className="font-bold">
-                            Precio
-                        </label>
-                        <InputNumber id="precio" value={product.precio} onValueChange={(e) => onInputNumberChange(e, 'precio')} mode="currency" currency="USD" locale="en-US" />
-                    </div>
-                    
-                </div>
+              
             </Dialog> 
 
 
 
            
-            {/* eliminar solo uno */}
-            <Dialog visible={deleteProductDialog} style={{ width: '32rem' }} breakpoints={{ '960px': '75vw', '641px': '90vw' }} header="Confirm" modal footer={deleteProductDialogFooter} onHide={hideDeleteProductDialog}>
+
+            {/* <Dialog visible={deleteProductDialog} style={{ width: '32rem' }} breakpoints={{ '960px': '75vw', '641px': '90vw' }} header="Confirm" modal footer={deleteProductDialogFooter} onHide={hideDeleteProductDialog}>
                 <div className="confirmation-content">
                     <i className="pi pi-exclamation-triangle mr-3" style={{ fontSize: '2rem' }} />
                     {product && (
                         <span>
-                            Are you sure you want to delete <b>{product.nombre}</b>?
+                            Are you sure you want to delete <b>{product.name}</b>?
                         </span>
                     )}
                 </div>
-            </Dialog>
+            </Dialog> */}
 
-            {/* eliminar por lote */}
-            <Dialog visible={deleteProductsDialog} style={{ width: '32rem' }} breakpoints={{ '960px': '75vw', '641px': '90vw' }} header="Confirm" modal footer={deleteProductsDialogFooter} onHide={hideDeleteProductsDialog}>
+            {/* <Dialog visible={deleteProductsDialog} style={{ width: '32rem' }} breakpoints={{ '960px': '75vw', '641px': '90vw' }} header="Confirm" modal footer={deleteProductsDialogFooter} onHide={hideDeleteProductsDialog}>
                 <div className="confirmation-content">
                     <i className="pi pi-exclamation-triangle mr-3" style={{ fontSize: '2rem' }} />
                     {product && <span>Are you sure you want to delete the selected products?</span>}
                 </div>
-            </Dialog>
+            </Dialog> */}
         </div>
     );
 }
