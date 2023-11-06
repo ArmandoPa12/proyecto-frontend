@@ -59,22 +59,18 @@ export default function categoriaComponent() {
     // }, []);
 
 
-
     useEffect(() => {
-        // Realiza una solicitud GET a la API externa usando fetch
-        // fetch('https://fakestoreapi.com/products')
-        fetch('http://localhost:8080/proveedor')
+        
+        fetch('http://localhost:8080/proveedor/index')
 
           .then((response) => {
-            // Verifica si la solicitud fue exitosa y obtén los datos
             if (response.ok) {
-              return response.json(); // Convierte la respuesta a JSON
+              return response.json(); 
             } else {
               throw new Error('Error en la solicitud a la API');
             }
           })
           .then((data) => {
-            // Almacena los datos en el estado local
             console.log(data);
             setProducts(data);
           })
@@ -109,168 +105,76 @@ export default function categoriaComponent() {
 
 
 
-    const saveProductEdit = () => {
-        setSubmitted(true);
     
-        if (product.nombre.trim()) {
-            // Crea un objeto de datos para enviar en la solicitud POST
-            const data = {
-                id: product.id,
-                nombre: product.nombre,
-                descripcion: product.descripcion,
-                id_categoria: product.id_categoria,
-                precio: product.precio,
-                // Otras propiedades de product que desees incluir
-            };
-    
-            // Realiza la solicitud POST a tu API
-            fetch('http://localhost:8080/producto/update', {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(data),
-            })
-            .then((response) => {
-                if (response.ok) {
-                    return response.json();
-                } else {
-                    throw new Error('Error en la solicitud a la API');
-                }
-            })
-            .then((responseData) => {
-                // Maneja la respuesta de la API si es necesario
-                console.log('Respuesta de la API:', responseData);
-    
-                // Actualiza el estado local o realiza otras acciones según sea necesario
-                let _products = [...products];
-                let _product = { ...product };
-    
-                if (product.id) {
-                    const index = findIndexById(product.id);
-    
-                    _products[index] = _product;
-                    toast.current.show({ severity: 'success', summary: 'Successful', detail: 'Product Updated', life: 3000 });
-                } else {
-                    _product.id = createId();
-                    _product.image = 'product-placeholder.svg';
-                    _products.push(_product);
-                    toast.current.show({ severity: 'success', summary: 'Successful', detail: 'Product Created', life: 3000 });
-                }
-    
-                setProducts(_products);
-                setProductDialog(false);
-                setProduct(emptyProduct);
-            })
-            .catch((error) => {
-                console.error('Error al enviar datos a la API:', error);
-                // Maneja los errores si es necesario
-            });
-        }
-    };
 
 
     const saveProduct = () => {
         setSubmitted(true);
-    
+
+        console.log('Datos de product antes de guardar:', product);
         if (product.empresa.trim()) {
             let _products = [...products];
-            let _product = { ...product };
-            
-            console.log("base");
-            console.log(_product);
-            if (_product.cod) {
-                // Realiza una solicitud PUT si el producto tiene un id
-                updateProduct(_product)
-                    .then((updatedProduct) => {
-                        const index = findIndexById(updatedProduct.id);
-    
-                        _products[index] = updatedProduct;
-                        toast.current.show({ severity: 'success', summary: 'Successful', detail: 'Product Updated', life: 3000 });
-                        setProducts(_products);
-                        setProductDialog(false);
-                        setProduct(emptyProduct);
-                    })
-                    .catch((error) => {
-                        console.error('Error al actualizar el producto:', error);
-                        // Maneja el error, muestra una notificación de error, etc.
-                    });
-            } else {
-                // Realiza una solicitud POST si el producto no tiene un id
+
+            if (product.id) {
+
+                const datos = {
+                    empresa: product.empresa,
+                    telefono: product.telefono
+                };
+
                 
-                createProduct(_product)
-                    .then((createdProduct) => {
-                        
-                        _products.push(createdProduct);
-                        toast.current.show({ severity: 'success', summary: 'Successful', detail: 'Product Created', life: 3000 });
-                        setProducts(_products);
-                        setProductDialog(false);
-                        setProduct(emptyProduct);
-                    })
-                    .catch((error) => {
-                        console.error('Error al crear el producto:', error);
-                        // Maneja el error, muestra una notificación de error, etc.
-                    });
+
+                fetch('http://localhost:8080/proveedor/update/'+product.id, {
+                    method: 'PUT',
+                    headers: {
+                    'Content-Type': 'application/json',
+                         },
+                            body: JSON.stringify(datos),
+                                })
+                                .then((response) => {
+                                if (response.ok) {
+                                     return response.json();
+                                 } else {
+                                    throw new Error('Error en la solicitud a la API');
+                                }
+                                })
+                
+
+                
+                toast.current.show({ severity: 'success', summary: 'Successful', detail: 'Product Updated', life: 3000 });
+            } else {
+                
+                const datos = {
+                    empresa: product.empresa,
+                    telefono: product.telefono
+                };
+
+                fetch('http://localhost:8080/proveedor/create', {
+                    method: 'POST',
+                    headers: {
+                    'Content-Type': 'application/json',
+                         },
+                            body: JSON.stringify(datos),
+                                })
+                                .then((response) => {
+                                if (response.ok) {
+                                     return response.json();
+                                 } else {
+                                    throw new Error('Error en la solicitud a la API');
+                                }
+                                })
+
+                toast.current.show({ severity: 'success', summary: 'Successful', detail: 'Product Created', life: 3000 });
+
             }
+
+            setProducts(_products);
+            setProductDialog(false);
+            setProduct(emptyProduct);
         }
     };
     
-    // Función para actualizar un producto (PUT)
-    const updateProduct = (product) => {
-        // Realiza una solicitud PUT a la API con el producto a actualizar
-        const data = {
-            nombre: product.nombre,
-            descripcion: product.descripcion,
-            id_categoria: product.id_categoria,
-            precio: product.precio,
-        };
-        console.log("funcion update");
-        console.log(product);
-        return fetch('http://localhost:8080/producto/update/' + product.cod, {
-            method: 'PUT',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(data),
-        })
-            .then((response) => {
-                if (response.ok) {
-                    return response.json();
-                } else {
-                    throw new Error('Error en la solicitud PUT a la API');
-                }
-            });
-    };
     
-    // Función para crear un nuevo producto (POST)
-    const createProduct = (product) => {
-        // Realiza una solicitud POST a la API con el nuevo producto
-
-        const data = {
-                        nombre: product.nombre,
-                        descripcion: product.descripcion,
-                        id_categoria: product.id_categoria,
-                        precio: product.precio,
-                    };
-        
-        return fetch('http://localhost:8080/producto/create', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(data),
-        })
-            .then((response) => {
-                if (response.ok) {
-                    return response.json();
-                } else {
-                    throw new Error('Error en la solicitud POST a la API');
-                }
-            });
-    };
-    
-
-
 
 
 
@@ -286,9 +190,22 @@ export default function categoriaComponent() {
     };
 
     const deleteProduct = () => {
-        let _products = products.filter((val) => val.id !== product.id);
+        fetch('http://localhost:8080/proveedor/delete/'+product.id, {
+            method: 'DELETE',
+            headers: {
+            'Content-Type': 'application/json',
+                 },
+                    body: JSON.stringify(),
+                        })
+                        .then((response) => {
+                        if (response.ok) {
+                             return response.json();
+                         } else {
+                            throw new Error('Error en la solicitud a la API');
+                        }
+                        })
 
-        setProducts(_products);
+
         setDeleteProductDialog(false);
         setProduct(emptyProduct);
         toast.current.show({ severity: 'success', summary: 'Successful', detail: 'Product Deleted', life: 3000 });
@@ -363,15 +280,15 @@ export default function categoriaComponent() {
     const leftToolbarTemplate = () => {
         return (
             <div className="flex flex-wrap gap-2">
-                <Button label="New" icon="pi pi-plus" severity="success" onClick={openNew} />
-                <Button label="Delete" icon="pi pi-trash" severity="danger" onClick={confirmDeleteSelected} disabled={!selectedProducts || !selectedProducts.length} />
+                <Button label="Nuevo proveedor" icon="pi pi-plus" severity="success" onClick={openNew} />
+                {/* <Button label="Delete" icon="pi pi-trash" severity="danger" onClick={confirmDeleteSelected} disabled={!selectedProducts || !selectedProducts.length} /> */}
             </div>
         );
     };
 
     // boton para cvs
     const rightToolbarTemplate = () => {
-        return <Button label="Export" icon="pi pi-upload" className="p-button-help" onClick={exportCSV} />;
+        return <Button label="Exportar" icon="pi pi-upload" className="p-button-help" onClick={exportCSV} />;
     };
 
 
@@ -393,7 +310,7 @@ export default function categoriaComponent() {
 
     const header = (
         <div className="flex flex-wrap gap-2 align-items-center justify-content-between">
-            <h4 className="m-0">Adminisitrar productos</h4>
+            <h4 className="m-0">Adminisitrar proveedores</h4>
             <span className="p-input-icon-left">
                 <i className="pi pi-search" />
                 <InputText type="search" onInput={(e) => setGlobalFilter(e.target.value)} placeholder="Buscar..." />
@@ -402,8 +319,8 @@ export default function categoriaComponent() {
     );
     const productDialogFooter = (
         <React.Fragment>
-            <Button label="Cancel" icon="pi pi-times" outlined onClick={hideDialog} />
-            <Button label="Save" icon="pi pi-check" onClick={saveProduct} />
+            <Button label="Cancelar" icon="pi pi-times" outlined onClick={hideDialog} />
+            <Button label="Guardar" icon="pi pi-check" onClick={saveProduct} />
         </React.Fragment>
     );
 
@@ -423,7 +340,7 @@ export default function categoriaComponent() {
     const deleteProductDialogFooter = (
         <React.Fragment>
             <Button label="No" icon="pi pi-times" outlined onClick={hideDeleteProductDialog} />
-            <Button label="Yes" icon="pi pi-check" severity="danger" onClick={deleteProduct} />
+            <Button label="Si" icon="pi pi-check" severity="danger" onClick={deleteProduct} />
         </React.Fragment>
     );
     const deleteProductsDialogFooter = (
@@ -446,7 +363,7 @@ export default function categoriaComponent() {
                         currentPageReportTemplate="Showing {first} to {last} of {totalRecords} products" globalFilter={globalFilter} header={header}>
 
 
-                    <Column selectionMode="multiple" exportable={false}></Column>
+                    {/* <Column selectionMode="multiple" exportable={false}></Column> */}
                     <Column field="id"  header="Codigo" sortable style={{ display: 'none' }}></Column>
                     <Column field="empresa" header="Empresa" sortable style={{ minWidth: '16rem' }}></Column>
                     <Column field="telefono" header="Telefono" ></Column>
@@ -457,7 +374,7 @@ export default function categoriaComponent() {
 
 
             {/* crear uno nuevo */}
-            <Dialog visible={productDialog} style={{ width: '32rem' }} breakpoints={{ '960px': '75vw', '641px': '90vw' }} header="Detalle de la empresa" modal className="p-fluid" footer={productDialogFooter} onHide={hideDialog}>
+            <Dialog visible={productDialog} style={{ width: '32rem' }} breakpoints={{ '960px': '75vw', '641px': '90vw' }} header="Detalle del proveedor" modal className="p-fluid" footer={productDialogFooter} onHide={hideDialog}>
                 {product.image && <img src={`https://primefaces.org/cdn/primereact/images/product/${product.image}`} alt={product.image} className="product-image block m-auto pb-3" />}
                 
                 {/* nombre */}
@@ -470,14 +387,12 @@ export default function categoriaComponent() {
                     {submitted && !product.empresa && <small className="p-error">Empresa es requerido.</small>}
                 </div>
 
-                {/* descripcion */}
-                <div className="field">
-                    <label htmlFor="telefono" className="font-bold">
-                        Telefono
-                    </label>
-                    <InputTextarea id="telefono" value={product.telefono} onChange={(e) => onInputChange(e, 'telefono')} required rows={3} cols={20} />
-                </div>
 
+                <div className="field">
+                <label htmlFor="ci" className="font-bold"> Telefono</label>
+                    <InputNumber inputId="telefono" value={product.telefono} onValueChange={(e) => onInputNumberChange(e, "telefono")} useGrouping={false} required autoFocus className={classNames({ "p-invalid": submitted && !product.telefono })}/>
+                    {submitted && !product.telefono && <small className="p-error">El telefono es requerido.</small>}
+                </div>
 
               
             </Dialog> 
@@ -486,16 +401,16 @@ export default function categoriaComponent() {
 
            
 
-            {/* <Dialog visible={deleteProductDialog} style={{ width: '32rem' }} breakpoints={{ '960px': '75vw', '641px': '90vw' }} header="Confirm" modal footer={deleteProductDialogFooter} onHide={hideDeleteProductDialog}>
+            <Dialog visible={deleteProductDialog} style={{ width: '32rem' }} breakpoints={{ '960px': '75vw', '641px': '90vw' }} header="Confirmar" modal footer={deleteProductDialogFooter} onHide={hideDeleteProductDialog}>
                 <div className="confirmation-content">
                     <i className="pi pi-exclamation-triangle mr-3" style={{ fontSize: '2rem' }} />
                     {product && (
                         <span>
-                            Are you sure you want to delete <b>{product.name}</b>?
+                        Seguro que quieres eliminar <b>{product.empresa}</b>?
                         </span>
                     )}
                 </div>
-            </Dialog> */}
+            </Dialog>
 
             {/* <Dialog visible={deleteProductsDialog} style={{ width: '32rem' }} breakpoints={{ '960px': '75vw', '641px': '90vw' }} header="Confirm" modal footer={deleteProductsDialogFooter} onHide={hideDeleteProductsDialog}>
                 <div className="confirmation-content">

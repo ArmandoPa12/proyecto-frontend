@@ -45,10 +45,8 @@ export default function ProductoComponent() {
 
     let emptyEntrada = {
         cod: null,
-        nombre: '',
         cantidad: 0,
         precio: 0,
-        proveedor:'',
         id:null
     };
 
@@ -66,7 +64,7 @@ export default function ProductoComponent() {
     const toast = useRef(null);
     const dt = useRef(null);
 
-    const [categorias, setCategorias] = useState([]);
+    const [proveedores, setCategorias] = useState([]);
 
 
     const [searchResults, setSearchResults] = useState([]);
@@ -81,8 +79,7 @@ export default function ProductoComponent() {
             const response = await fetch('http://localhost:8080/producto/index');
             if (response.ok) {
               const data = await response.json();
-              console.log("busqueda");
-              console.log(data);
+              setProducts(data);
               setAllData(data);
             } else {
               console.error('Error en la solicitud a la API');
@@ -110,7 +107,7 @@ export default function ProductoComponent() {
       useEffect(() => {
         // Realiza una solicitud GET a la API externa usando fetch
         // fetch('https://fakestoreapi.com/products')
-        fetch('http://localhost:8080/proveedor')
+        fetch('http://localhost:8080/proveedor/index')
 
           .then((response) => {
             // Verifica si la solicitud fue exitosa y obtén los datos
@@ -130,9 +127,8 @@ export default function ProductoComponent() {
           });
       }, []);
 
+    //fetch inventario
     useEffect(() => {
-        // Realiza una solicitud GET a la API externa usando fetch
-        // fetch('https://fakestoreapi.com/products')
         fetch('http://localhost:8080/inventario/index')
 
           .then((response) => {
@@ -168,6 +164,7 @@ export default function ProductoComponent() {
     const hideEntradaDialog = () => {
         setSubmitted(false);
         setEntradaDialog(false);
+        setSearchQuery(null);
     };
 
     const hideDialog = () => {
@@ -211,69 +208,7 @@ export default function ProductoComponent() {
 
 
 
-    // const saveProduct = () => {
-    //     setSubmitted(true);
-    
-    //     if (product.nombre.trim()) {
-    //         // Crea un objeto de datos para enviar en la solicitud POST
-    //         const data = {
-    //             id: product.id,
-    //             nombre: product.nombre,
-    //             descripcion: product.descripcion,
-    //             id_categoria: product.id_categoria,
-    //             precio: product.precio,
-    //             // Otras propiedades de product que desees incluir
-    //         };
-    
-    //         // Realiza la solicitud POST a tu API
-    //         fetch('http://localhost:8080/producto/create', {
-    //             method: 'POST',
-    //             headers: {
-    //                 'Content-Type': 'application/json',
-    //             },
-    //             body: JSON.stringify(data),
-    //         })
-    //         .then((response) => {
-    //             if (response.ok) {
-    //                 return response.json();
-    //             } else {
-    //                 throw new Error('Error en la solicitud a la API');
-    //             }
-    //         })
-    //         .then((responseData) => {
-    //             // Maneja la respuesta de la API si es necesario
-    //             console.log('Respuesta de la API:', responseData);
-    
-    //             // Actualiza el estado local o realiza otras acciones según sea necesario
-    //             let _products = [...products];
-    //             let _product = { ...product };
-    
-    //             if (product.id) {
-    //                 const index = findIndexById(product.id);
-    
-    //                 _products[index] = _product;
-    //                 toast.current.show({ severity: 'success', summary: 'Successful', detail: 'Product Updated', life: 3000 });
-    //             } else {
-                    
-    //                 _product.id = createId();
-    //                 _product.image = 'product-placeholder.svg';
-    //                 _products.push(_product);
-    //                 toast.current.show({ severity: 'success', summary: 'Successful', detail: 'Product Created', life: 3000 });
-    //             }
-    
-    //             setProducts(_products);
-    //             setProductDialog(false);
-    //             setProduct(emptyProduct);
-    //         })
-    //         .catch((error) => {
-    //             console.error('Error al enviar datos a la API:', error);
-    //             // Maneja los errores si es necesario
-    //         });
-    //     }
-    // };
-
-
-    const saveProductEdit = () => {
+    const saveProduct = () => {
         setSubmitted(true);
     
         if (product.nombre.trim()) {
@@ -288,8 +223,8 @@ export default function ProductoComponent() {
             };
     
             // Realiza la solicitud POST a tu API
-            fetch('http://localhost:8080/producto/update', {
-                method: 'PUT',
+            fetch('http://localhost:8080/producto/create', {
+                method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
@@ -316,6 +251,7 @@ export default function ProductoComponent() {
                     _products[index] = _product;
                     toast.current.show({ severity: 'success', summary: 'Successful', detail: 'Product Updated', life: 3000 });
                 } else {
+                    
                     _product.id = createId();
                     _product.image = 'product-placeholder.svg';
                     _products.push(_product);
@@ -337,137 +273,33 @@ export default function ProductoComponent() {
 
     const saveNota = () => {
         setSubmitted(true);
+
+
+        console.log("save nota");
         console.log(entrada);
-        if (entrada.nombre.trim()) {
-            let _products = [...entrada];
-            let _product = { ...entrada };
 
-            console.log(entrada);
+        console.log(entrada.cod);
 
-            // if (entrada.id) {
-            //     const index = findIndexById(product.id);
+        if (entrada.cod > 0 ){
+            // let _products = [...entrada];
 
-            //     _products[index] = _product;
-            //     toast.current.show({ severity: 'success', summary: 'Successful', detail: 'Product Updated', life: 3000 });
-            // } else {
-            //     _product.id = createId();
-            //     _product.image = 'product-placeholder.svg';
-            //     _products.push(_product);
-            //     toast.current.show({ severity: 'success', summary: 'Successful', detail: 'Product Created', life: 3000 });
-            // }
+            const datos = {
+                cod: entrada.cod,
+                cantidad: entrada.cantidad,
+                id: entrada.id,
+                precio: entrada.precio,
+            };
 
-            setProducts(_products);
-            setProductDialog(false);
-            setProduct(emptyProduct);
+            console.log(datos);
+
+            toast.current.show({ severity: 'success', summary: 'Successful', detail: 'Nota creada', life: 3000 });
+            setSearchQuery(null);
+            setEntradaDialog(false);
+            setEntrada(emptyEntrada);
         }
+
+
     };
-
-
-
-
-
-
-    const saveProduct = () => {
-        setSubmitted(true);
-    
-        if (product.nombre.trim()) {
-            let _products = [...products];
-            let _product = { ...product };
-            
-            console.log("base");
-            console.log(_product);
-            if (_product.cod) {
-                // Realiza una solicitud PUT si el producto tiene un id
-                updateProduct(_product)
-                    .then((updatedProduct) => {
-                        const index = findIndexById(updatedProduct.id);
-    
-                        _products[index] = updatedProduct;
-                        toast.current.show({ severity: 'success', summary: 'Successful', detail: 'Product Updated', life: 3000 });
-                        setProducts(_products);
-                        setProductDialog(false);
-                        setProduct(emptyProduct);
-                    })
-                    .catch((error) => {
-                        console.error('Error al actualizar el producto:', error);
-                        // Maneja el error, muestra una notificación de error, etc.
-                    });
-            } else {
-                // Realiza una solicitud POST si el producto no tiene un id
-                
-                createProduct(_product)
-                    .then((createdProduct) => {
-                        
-                        _products.push(createdProduct);
-                        toast.current.show({ severity: 'success', summary: 'Successful', detail: 'Product Created', life: 3000 });
-                        setProducts(_products);
-                        setProductDialog(false);
-                        setProduct(emptyProduct);
-                    })
-                    .catch((error) => {
-                        console.error('Error al crear el producto:', error);
-                        // Maneja el error, muestra una notificación de error, etc.
-                    });
-            }
-        }
-    };
-    
-    // Función para actualizar un producto (PUT)
-    const updateProduct = (product) => {
-        // Realiza una solicitud PUT a la API con el producto a actualizar
-        const data = {
-            nombre: product.nombre,
-            descripcion: product.descripcion,
-            id_categoria: product.id_categoria,
-            precio: product.precio,
-        };
-        console.log("funcion update");
-        console.log(product);
-        return fetch('http://localhost:8080/producto/update/' + product.cod, {
-            method: 'PUT',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(data),
-        })
-            .then((response) => {
-                if (response.ok) {
-                    return response.json();
-                } else {
-                    throw new Error('Error en la solicitud PUT a la API');
-                }
-            });
-    };
-    
-    // Función para crear un nuevo producto (POST)
-    const createProduct = (product) => {
-        // Realiza una solicitud POST a la API con el nuevo producto
-
-        const data = {
-                        nombre: product.nombre,
-                        descripcion: product.descripcion,
-                        id_categoria: product.id_categoria,
-                        precio: product.precio,
-                    };
-        
-        return fetch('http://localhost:8080/producto/create', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(data),
-        })
-            .then((response) => {
-                if (response.ok) {
-                    return response.json();
-                } else {
-                    throw new Error('Error en la solicitud POST a la API');
-                }
-            });
-    };
-    
-
-
 
 
 
@@ -536,27 +368,30 @@ export default function ProductoComponent() {
         // console.log(e.value);
         let _product = { ...entrada };
         // console.log(_product);
-        _product['proveedor'] = e.value;
+        _product['id'] = e.value;
         setEntrada(_product);
     };
 
     const onInputChange = (e, name) => {
-        console.log(name);
+        // console.log(name);
         const val = (e.target && e.target.value) || '';
         let _product = { ...entrada };
 
-        _product[`${name}`] = val;
-
-        setProduct(_product);
+        _product[`${name}`] = val.cod;
+        console.log("value");
+        console.log(val.cod);
+        setEntrada(_product);
     };
 
     const onInputNumberChange = (e, name) => {
         const val = e.value || 0;
-        let _product = { ...product };
+        let _entrada = { ...entrada };
+        console.log("inputnumeber");
+        console.log(name);
+        console.log(val);
+        _entrada[`${name}`] = val;
 
-        _product[`${name}`] = val;
-
-        setProduct(_product);
+        setEntrada(_entrada);
     };
 
     const leftToolbarTemplate = () => {
@@ -592,7 +427,7 @@ export default function ProductoComponent() {
 
     const header = (
         <div className="flex flex-wrap gap-2 align-items-center justify-content-between">
-            <h4 className="m-0">Adminisitrar productos</h4>
+            <h4 className="m-0">Adminisitrar inventario</h4>
             <span className="p-input-icon-left">
                 <i className="pi pi-search" />
                 <InputText type="search" onInput={(e) => setGlobalFilter(e.target.value)} placeholder="Buscar..." />
@@ -601,7 +436,7 @@ export default function ProductoComponent() {
     );
     const productDialogFooter = (
         <React.Fragment>
-            <Button label="Cancel" icon="pi pi-times" outlined onClick={hideDialog} />
+            <Button label="Cancelar" icon="pi pi-times" outlined onClick={hideDialog} />
             {/* <Button label="Save" icon="pi pi-check" onClick={saveProduct} /> */}
         </React.Fragment>
     );
@@ -609,7 +444,7 @@ export default function ProductoComponent() {
 
     const EntradaDialogFooter = (
         <React.Fragment>
-            <Button label="Cancel" icon="pi pi-times" outlined onClick={hideEntradaDialog} />
+            <Button label="Cancelar" icon="pi pi-times" outlined onClick={hideEntradaDialog} />
             <Button label="Guardar nota" icon="pi pi-check" onClick={saveNota} />
         </React.Fragment>
     );
@@ -642,10 +477,10 @@ export default function ProductoComponent() {
 
     const handleInputChange = (e) => {
 
-        console.log("nom");
-        console.log(e.value);
+        // console.log("nom");
+        // console.log(e.value);
         setSearchQuery(e.value); // Llama a setSearchQuery
-        onInputChange(e, 'nombre'); // Llama a onInputChange
+        onInputChange(e, 'cod'); // Llama a onInputChange
       };
 
     return (
@@ -661,7 +496,7 @@ export default function ProductoComponent() {
                         currentPageReportTemplate="Showing {first} to {last} of {totalRecords} products" globalFilter={globalFilter} header={header}>
 
 
-                    <Column selectionMode="multiple" exportable={false}></Column>
+                    {/* <Column selectionMode="multiple" exportable={false}></Column> */}
                     <Column field="cod" header="Codigo" sortable style={{ minWidth: '12rem' }}></Column>
                     <Column field="nombre" header="Nombre" sortable style={{ minWidth: '16rem' }}></Column>
                     <Column field="categoria" style={{ display:'none' }}></Column>             
@@ -732,9 +567,6 @@ export default function ProductoComponent() {
             <Dialog visible={entradaDialog} style={{ width: '32rem' }} breakpoints={{ '960px': '75vw', '641px': '90vw' }} header="Detalle nota entrada" modal className="p-fluid" footer={EntradaDialogFooter} onHide={hideEntradaDialog}>
                 
 
-            
-
-
                 {/* nombre */}
                 
                 <div className="field">
@@ -749,12 +581,12 @@ export default function ProductoComponent() {
                 {/* proveedor*/}
                 
                 <div className="field">
-                    <label className="mb-3 font-bold">Categoria</label>
+                    <label className="mb-3 font-bold">Proveedor</label>
                     <div className="formgrid grid">
-                        {categorias.map((categoria) => (
-                        <div className="field-radiobutton col-6" key={categoria.id}>
-                            <RadioButton inputId={`categoria${categoria.id}`} name="categoria" value={categoria.empresa} onChange={onCategoryChange} checked={product.id_categoria === categoria.id}/>
-                            <label htmlFor={`categoria${categoria.id}`}>{categoria.empresa}</label>
+                        {proveedores.map((proveedor) => (
+                        <div className="field-radiobutton col-6" key={proveedor.id}>
+                            <RadioButton inputId={`proveedor${proveedor.id}`} name="categoria" value={proveedor.id} onChange={onCategoryChange} checked={entrada.id === proveedor.id}/>
+                            <label htmlFor={`proveedor${proveedor.id}`}>{proveedor.empresa}</label>
                         </div>
                         ))}
                     </div>

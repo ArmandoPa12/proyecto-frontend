@@ -120,17 +120,50 @@ export default function categoriaComponent() {
             // console.log("base");
             // console.log(_product);
             if (product.id) {
-                const index = findIndexById(product.id);
 
-                _products[index] = _product;
+                const datos = {
+                    nombre: product.nombre,
+                    descripcion: product.descripcion,
+                };
+
+                fetch('http://localhost:8080/categoria/update/'+product.id, {
+                    method: 'PUT',
+                    headers: {
+                    'Content-Type': 'application/json',
+                         },
+                            body: JSON.stringify(datos),
+                                })
+                                .then((response) => {
+                                if (response.ok) {
+                                     return response.json();
+                                 } else {
+                                    throw new Error('Error en la solicitud a la API');
+                                }
+                                })
                 toast.current.show({ severity: 'success', summary: 'Successful', detail: 'Product Updated', life: 3000 });
             } else {
 
-                
+                const datos = {
+                    nombre: product.nombre,
+                    descripcion: product.descripcion,
+                };
+                console.log(datos);
+                fetch('http://localhost:8080/categoria/create', {
+                    method: 'POST',
+                    headers: {
+                    'Content-Type': 'application/json',
+                         },
+                            body: JSON.stringify(datos),
+                                })
+                                .then((response) => {
+                                if (response.ok) {
+                                     return response.json();
+                                 } else {
+                                    throw new Error('Error en la solicitud a la API');
+                                }
+                                }) 
 
-                console.log(_product);
-                _product.id = createId();
-                _products.push(_product);
+               
                 toast.current.show({ severity: 'success', summary: 'Successful', detail: 'Product Created', life: 3000 });
             }
 
@@ -153,9 +186,23 @@ export default function categoriaComponent() {
     };
 
     const deleteProduct = () => {
-        let _products = products.filter((val) => val.id !== product.id);
+       
+        fetch('http://localhost:8080/categoria/delete/'+product.id, {
+            method: 'DELETE',
+            headers: {
+            'Content-Type': 'application/json',
+                 },
+                    body: JSON.stringify(),
+                        })
+                        .then((response) => {
+                        if (response.ok) {
+                             return response.json();
+                         } else {
+                            throw new Error('Error en la solicitud a la API');
+                        }
+                        })
 
-        setProducts(_products);
+
         setDeleteProductDialog(false);
         setProduct(emptyProduct);
         toast.current.show({ severity: 'success', summary: 'Successful', detail: 'Product Deleted', life: 3000 });
@@ -230,15 +277,15 @@ export default function categoriaComponent() {
     const leftToolbarTemplate = () => {
         return (
             <div className="flex flex-wrap gap-2">
-                <Button label="New" icon="pi pi-plus" severity="success" onClick={openNew} />
-                <Button label="Delete" icon="pi pi-trash" severity="danger" onClick={confirmDeleteSelected} disabled={!selectedProducts || !selectedProducts.length} />
+                <Button label="Nueva categoria" icon="pi pi-plus" severity="success" onClick={openNew} />
+                {/* <Button label="Delete" icon="pi pi-trash" severity="danger" onClick={confirmDeleteSelected} disabled={!selectedProducts || !selectedProducts.length} /> */}
             </div>
         );
     };
 
     // boton para cvs
     const rightToolbarTemplate = () => {
-        return <Button label="Export" icon="pi pi-upload" className="p-button-help" onClick={exportCSV} />;
+        return <Button label="Exportar" icon="pi pi-upload" className="p-button-help" onClick={exportCSV} />;
     };
 
 
@@ -260,7 +307,7 @@ export default function categoriaComponent() {
 
     const header = (
         <div className="flex flex-wrap gap-2 align-items-center justify-content-between">
-            <h4 className="m-0">Adminisitrar productos</h4>
+            <h4 className="m-0">Adminisitrar categorias</h4>
             <span className="p-input-icon-left">
                 <i className="pi pi-search" />
                 <InputText type="search" onInput={(e) => setGlobalFilter(e.target.value)} placeholder="Buscar..." />
@@ -269,8 +316,8 @@ export default function categoriaComponent() {
     );
     const productDialogFooter = (
         <React.Fragment>
-            <Button label="Cancel" icon="pi pi-times" outlined onClick={hideDialog} />
-            <Button label="Save" icon="pi pi-check" onClick={saveProduct} />
+            <Button label="Cancelar" icon="pi pi-times" outlined onClick={hideDialog} />
+            <Button label="Guardar" icon="pi pi-check" onClick={saveProduct} />
         </React.Fragment>
     );
 
@@ -290,7 +337,7 @@ export default function categoriaComponent() {
     const deleteProductDialogFooter = (
         <React.Fragment>
             <Button label="No" icon="pi pi-times" outlined onClick={hideDeleteProductDialog} />
-            <Button label="Yes" icon="pi pi-check" severity="danger" onClick={deleteProduct} />
+            <Button label="Si" icon="pi pi-check" severity="danger" onClick={deleteProduct} />
         </React.Fragment>
     );
     const deleteProductsDialogFooter = (
@@ -313,7 +360,7 @@ export default function categoriaComponent() {
                         currentPageReportTemplate="Showing {first} to {last} of {totalRecords} products" globalFilter={globalFilter} header={header}>
 
 
-                    <Column selectionMode="multiple" exportable={false}></Column>
+                    {/* <Column selectionMode="multiple" exportable={false}></Column> */}
                     <Column field="id"  header="Codigo" sortable style={{ display: 'none' }}></Column>
                     <Column field="nombre" header="Nombre" sortable style={{ minWidth: '16rem' }}></Column>
                     <Column field="descripcion" header="Descripcion" ></Column>
@@ -334,7 +381,7 @@ export default function categoriaComponent() {
                         Nombre
                     </label>
                     <InputText id="nombre" value={product.nombre} onChange={(e) => onInputChange(e, 'nombre')} required autoFocus className={classNames({ 'p-invalid': submitted && !product.nombre })} />
-                    {submitted && !product.name && <small className="p-error">Nombre es requerido.</small>}
+                    {submitted && !product.nombre && <small className="p-error">Nombre es requerido.</small>}
                 </div>
 
                 {/* descripcion */}
@@ -353,16 +400,16 @@ export default function categoriaComponent() {
 
            
 
-            {/* <Dialog visible={deleteProductDialog} style={{ width: '32rem' }} breakpoints={{ '960px': '75vw', '641px': '90vw' }} header="Confirm" modal footer={deleteProductDialogFooter} onHide={hideDeleteProductDialog}>
+            <Dialog visible={deleteProductDialog} style={{ width: '32rem' }} breakpoints={{ '960px': '75vw', '641px': '90vw' }} header="Confirmar" modal footer={deleteProductDialogFooter} onHide={hideDeleteProductDialog}>
                 <div className="confirmation-content">
                     <i className="pi pi-exclamation-triangle mr-3" style={{ fontSize: '2rem' }} />
                     {product && (
                         <span>
-                            Are you sure you want to delete <b>{product.name}</b>?
+                            Seguro que quieres borrar la categoria <b>{product.nombre}</b>?
                         </span>
                     )}
                 </div>
-            </Dialog> */}
+            </Dialog>
 
             {/* <Dialog visible={deleteProductsDialog} style={{ width: '32rem' }} breakpoints={{ '960px': '75vw', '641px': '90vw' }} header="Confirm" modal footer={deleteProductsDialogFooter} onHide={hideDeleteProductsDialog}>
                 <div className="confirmation-content">

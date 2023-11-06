@@ -148,7 +148,7 @@ export default function ProductoComponent() {
                     id_categoria: product.id_categoria,
                     precio: product.precio,
                 };
-                console.log(datos);
+                
 
                 fetch('http://localhost:8080/producto/update/'+product.cod, {
                     method: 'PUT',
@@ -175,7 +175,7 @@ export default function ProductoComponent() {
                     id_categoria: product.id_categoria,
                     precio: product.precio,
                 };
-
+                console.log(datos);
                 fetch('http://localhost:8080/producto/create', {
                     method: 'POST',
                     headers: {
@@ -219,11 +219,29 @@ export default function ProductoComponent() {
 
         
 
-        let _products = products.filter((val) => val.cod !== product.cod);
+        
+        console.log(product.cod);
 
-        console.log(products);
+    
 
-        setProducts(_products);
+        fetch('http://localhost:8080/producto/delete/'+product.cod, {
+            method: 'DELETE',
+            headers: {
+            'Content-Type': 'application/json',
+                 },
+                    body: JSON.stringify(),
+                        })
+                        .then((response) => {
+                        if (response.ok) {
+                             return response.json();
+                         } else {
+                            throw new Error('Error en la solicitud a la API');
+                        }
+                        })
+
+
+
+
         setDeleteProductDialog(false);
         setProduct(emptyProduct);
         toast.current.show({ severity: 'success', summary: 'Successful', detail: 'Product Deleted', life: 3000 });
@@ -290,7 +308,9 @@ export default function ProductoComponent() {
     const onInputNumberChange = (e, name) => {
         const val = e.value || 0;
         let _product = { ...product };
-
+        console.log("inputnumeber");
+        console.log(name);
+        
         _product[`${name}`] = val;
 
         setProduct(_product);
@@ -299,15 +319,15 @@ export default function ProductoComponent() {
     const leftToolbarTemplate = () => {
         return (
             <div className="flex flex-wrap gap-2">
-                <Button label="New" icon="pi pi-plus" severity="success" onClick={openNew} />
-                <Button label="Delete" icon="pi pi-trash" severity="danger" onClick={confirmDeleteSelected} disabled={!selectedProducts || !selectedProducts.length} />
+                <Button label="Nuevo producto" icon="pi pi-plus" severity="success" onClick={openNew} />
+                {/* <Button label="Delete" icon="pi pi-trash" severity="danger" onClick={confirmDeleteSelected} disabled={!selectedProducts || !selectedProducts.length} /> */}
             </div>
         );
     };
 
     // boton para cvs
     const rightToolbarTemplate = () => {
-        return <Button label="Export" icon="pi pi-upload" className="p-button-help" onClick={exportCSV} />;
+        return <Button label="Exportar" icon="pi pi-upload" className="p-button-help" onClick={exportCSV} />;
     };
 
 
@@ -333,18 +353,12 @@ export default function ProductoComponent() {
     );
     const productDialogFooter = (
         <React.Fragment>
-            <Button label="Cancel" icon="pi pi-times" outlined onClick={hideDialog} />
-            <Button label="Save" icon="pi pi-check" onClick={saveProduct} />
+            <Button label="Cancelar" icon="pi pi-times" outlined onClick={hideDialog} />
+            <Button label="Guardar" icon="pi pi-check" onClick={saveProduct} />
         </React.Fragment>
     );
 
 
-    const productDialogFooterEditar = (
-        <React.Fragment>
-            <Button label="Cancel" icon="pi pi-times" outlined onClick={hideDialog} />
-            <Button label="Save" icon="pi pi-check" onClick={saveProduct} />
-        </React.Fragment>
-    );
 
 
 
@@ -352,9 +366,10 @@ export default function ProductoComponent() {
 
     //eliminar solo 1
     const deleteProductDialogFooter = (
+        
         <React.Fragment>
             <Button label="No" icon="pi pi-times" outlined onClick={hideDeleteProductDialog} />
-            <Button label="Yes" icon="pi pi-check" severity="danger" onClick={deleteProduct} />
+            <Button label="Si" icon="pi pi-check" severity="danger" onClick={deleteProduct} />
         </React.Fragment>
     );
 
@@ -381,7 +396,7 @@ export default function ProductoComponent() {
                         currentPageReportTemplate="Showing {first} to {last} of {totalRecords} products" globalFilter={globalFilter} header={header}>
 
 
-                    <Column selectionMode="multiple" exportable={false}></Column>
+                    {/* <Column selectionMode="multiple" exportable={false}></Column> */}
                     <Column field="cod" header="Codigo" sortable style={{ minWidth: '12rem' }}></Column>
                     <Column field="nombre" header="Nombre" sortable style={{ minWidth: '16rem' }}></Column>
                     <Column field="descripcion" header="Descripcion" ></Column>
@@ -450,24 +465,18 @@ export default function ProductoComponent() {
 
            
             {/* eliminar solo uno */}
-            <Dialog visible={deleteProductDialog} style={{ width: '32rem' }} breakpoints={{ '960px': '75vw', '641px': '90vw' }} header="Confirm" modal footer={deleteProductDialogFooter} onHide={hideDeleteProductDialog}>
+            <Dialog visible={deleteProductDialog} style={{ width: '32rem' }} breakpoints={{ '960px': '75vw', '641px': '90vw' }} header="Confirmar" modal footer={deleteProductDialogFooter} onHide={hideDeleteProductDialog}>
                 <div className="confirmation-content">
                     <i className="pi pi-exclamation-triangle mr-3" style={{ fontSize: '2rem' }} />
                     {product && (
                         <span>
-                            Are you sure you want to delete <b>{product.nombre}</b>?
+                            Seguro que quieres eliminar <b>{product.nombre}</b>?
                         </span>
                     )}
                 </div>
             </Dialog>
 
-            {/* eliminar por lote */}
-            <Dialog visible={deleteProductsDialog} style={{ width: '32rem' }} breakpoints={{ '960px': '75vw', '641px': '90vw' }} header="Confirm" modal footer={deleteProductsDialogFooter} onHide={hideDeleteProductsDialog}>
-                <div className="confirmation-content">
-                    <i className="pi pi-exclamation-triangle mr-3" style={{ fontSize: '2rem' }} />
-                    {product && <span>Are you sure you want to delete the selected products?</span>}
-                </div>
-            </Dialog>
+            
         </div>
     );
 }
