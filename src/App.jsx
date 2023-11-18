@@ -16,6 +16,9 @@ import CategoriaComponent from "./pages/categoriaComponent";
 import ProveedorComponent from "./pages/proveedorComponent";
 import InventarioComponent from "./pages/inventarioComponent";
 
+import ClienteComponent from "./pages/clienteComponent";
+
+
 
 function App() {
   return (
@@ -33,6 +36,7 @@ function App() {
           <Route path="/proveedor" element={<ProveedorComponent />} />
           <Route path="/inventario" element={<InventarioComponent />} />
 
+          <Route path="/cliente" element={<ClienteComponent />} />
 
 
 

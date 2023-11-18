@@ -53,12 +53,12 @@ export default function SideBarPage() {
       ],
     },
     {
-      label: "Edit",
+      label: "Cliente",
       icon: "pi pi-fw pi-pencil",
       items: [
         {
-          label: "Left",
-          icon: "pi pi-fw pi-align-left",
+          label: <Link to="/cliente">cliente</Link>,
+          icon: "pi pi-fw pi-plus",
         },
         {
           label: "Right",
