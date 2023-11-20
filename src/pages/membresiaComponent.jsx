@@ -19,7 +19,11 @@ import { Calendar } from "primereact/calendar";
 
 import { Dropdown } from 'primereact/dropdown';
 import { Chips } from 'primereact/chips';
-import { format } from 'date-fns';
+import { addDays, format, parse } from 'date-fns';
+import { da } from 'date-fns/locale';
+import { Card } from 'primereact/card';
+
+        
 
 
 
@@ -30,13 +34,21 @@ export default function MembresiaComponent() {
     let emptyProduct = {
         cliente: '',
         disciplina: [],
-        fecha:'',
+        fechaI:'',
+        fechaF:'',
         pago: '',
         monto: ''   
     };
 
 
     const [products, setProducts] = useState(null);
+
+    const [clientes, setClientes] = useState(null);
+    const [cliente, setCliente] = useState(null);
+
+
+    const [clienteDialog, setclienteDialog] = useState(false);
+
     const [productDialog, setProductDialog] = useState(false);
     const [deleteProductDialog, setDeleteProductDialog] = useState(false);
     const [deleteProductsDialog, setDeleteProductsDialog] = useState(false);
@@ -51,20 +63,7 @@ export default function MembresiaComponent() {
 
   
     const [selectedItems, setSelectedItems] = useState([]);
-    const [options] = useState([
-    { label: 'Item 1', value: 'item1' },
-    { label: 'Item 2', value: 'item2' },
-    { label: 'Item 3', value: 'item3' },
-    { label: 'Item 4', value: 'item4' },
-    // Agrega más elementos según sea necesario
-    ]);
-
-    const handleChangeDropdown = (e) => {
-        setSelectedItems(e.value);
-    };
-
-
-    const listchips = ["Boxeo","Spinning","Kick Boxing"];
+    const [selectedItemsCod, setSelectedItemsCod] = useState([]);
 
 
 
@@ -116,32 +115,31 @@ export default function MembresiaComponent() {
 
     const [searchResultsTipo, setSearchResultsTipo] = useState([]);
     const [searchQueryTipo, setSearchQueryTipo] = useState('');
-    const [allDataTipo, setAllDataTipo] = useState([]);
+    // const [allDataTipo, setAllDataTipo] = useState([]);
 
 
     
       
-      
 
-    // useEffect(() => {
+    useEffect(() => {
         
-    //     fetch('http://localhost:8080/cliente/index')
+        fetch('http://localhost:8080/membresia/index')
 
-    //       .then((response) => {
-    //         if (response.ok) {
-    //           return response.json(); 
-    //         } else {
-    //           throw new Error('Error en la solicitud a la API');
-    //         }
-    //       })
-    //       .then((data) => {
-    //         console.log(data);
-    //         setProducts(data);
-    //       })
-    //       .catch((error) => {
-    //         console.error('Error al obtener datos de la API:', error);
-    //       });
-    //   }, []);
+          .then((response) => {
+            if (response.ok) {
+              return response.json(); 
+            } else {
+              throw new Error('Error en la solicitud a la API');
+            }
+          })
+          .then((data) => {
+            console.log(data);
+            setClientes(data);
+          })
+          .catch((error) => {
+            console.error('Error al obtener datos de la API:', error);
+          });
+      }, []);
       
 
       // disciplina
@@ -172,6 +170,7 @@ export default function MembresiaComponent() {
         console.log(e.value.nombre);
         if (!selectedItems.includes(e.value.nombre)) {
             setSelectedItems([...selectedItems, e.value.nombre]);
+            setSelectedItemsCod([...selectedItemsCod, e.value.cod]);
           }
         setSearchQueryDis(e.value); // Llama a setSearchQuery
         onInputArrayChange(selectedItems, 'disciplina'); // Llama a onInputChange
@@ -190,39 +189,53 @@ export default function MembresiaComponent() {
 
 
     //tipo de pago
-    useEffect(() => {
-        // Realiza la consulta a la API y guarda los resultados en "allData"
-        const fetchData = async () => {
-          try {
-            const response = await fetch('http://localhost:8080/tipo');
-            if (response.ok) {
-              const data = await response.json();
-              console.log(data);
-            //   setProducts(data);
-              setAllDataTipo(data);
-            } else {
-              console.error('Error en la solicitud a la API');
-            }
-          } catch (error) {
-            console.error('Error al obtener datos de la API:', error);
-          }
-        };
+    // const allDataTipo = ["EFECTIVO", "TARJETA", "QR"];
+    const [allDataTipo] = useState([
+        { label: 'EFECTIVO', value: 'EFECTIVO' },
+        { label: 'TARJETA', value: 'TARJETA' },
+        { label: 'QR', value: 'QR' }
+        // Agrega más elementos según sea necesario
+        ]);
       
-        fetchData();
-      }, []);
+
+
+
+    // useEffect(() => {
+    //     // Realiza la consulta a la API y guarda los resultados en "allData"
+    //     const fetchData = async () => {
+    //       try {
+    //         const response = await fetch('http://localhost:8080/tipo');
+    //         if (response.ok) {
+    //           const data = await response.json();
+    //           console.log(data);
+    //         //   setProducts(data);
+    //           setAllDataTipo(data);
+    //         } else {
+    //           console.error('Error en la solicitud a la API');
+    //         }
+    //       } catch (error) {
+    //         console.error('Error al obtener datos de la API:', error);
+    //       }
+    //     };
+      
+    //     fetchData();
+    //   }, []);
 
 
     const openNew = () => {
         setProduct(emptyProduct);
+        setSelectedItems([]);
         setSubmitted(false);
         setProductDialog(true);
     };
 
     const hideDialog = () => {
+        setSelectedItems([]);
 
         setProduct(emptyProduct)
         setSubmitted(false);
         setProductDialog(false);
+        setclienteDialog(false);
     };
 
     const hideDeleteProductDialog = () => {
@@ -242,49 +255,16 @@ export default function MembresiaComponent() {
         setSubmitted(true);
         
         // console.log('Datos de product antes de guardar:', selectedItems);
-        
+        const fechaNueva = sumar30Dias(product.fechaI);
 
-        
-            console.log("dentro")
-            // let _products = [...products];
 
-            if (product.cliente) {
-
-                const datos = {
-                    cliente: product.cliente,
-                    disciplina: selectedItems,
-                    fecha:product.fecha,
-                    pago: product.pago,
-                    monto: product.monto 
-                };
-
-        
-
-                // fetch('http://localhost:8080/cliente/update/'+product.id, {
-                //     method: 'PUT',
-                //     headers: {
-                //     'Content-Type': 'application/json',
-                //          },
-                //             body: JSON.stringify(datos),
-                //                 })
-                //                 .then((response) => {
-                //                 if (response.ok) {
-                //                      return response.json();
-                //                  } else {
-                //                     throw new Error('Error en la solicitud a la API');
-                //                 }
-                //                 })
-                
-
-            console.log(datos);
-                
-                toast.current.show({ severity: 'success', summary: 'Successful', detail: 'Product Updated', life: 3000 });
-            } else {
+           
                 
                 const datos = {
                     cliente: product.cliente,
                     disciplina: selectedItems,
-                    fecha:product.fecha,
+                    fechaI:product.fechaI,
+                    fechaF:fechaNueva,
                     pago: product.pago,
                     monto: product.monto 
                 };
@@ -292,29 +272,26 @@ export default function MembresiaComponent() {
                 console.log(datos);
                 
 
-                // fetch('http://localhost:8080/cliente/create', {
-                //     method: 'POST',
-                //     headers: {
-                //     'Content-Type': 'application/json',
-                //          },
-                //             body: JSON.stringify(datos),
-                //                 })
-                //                 .then((response) => {
-                //                 if (response.ok) {
-                //                      return response.json();
-                //                  } else {
-                //                     throw new Error('Error en la solicitud a la API');
-                //                 }
-                //                 })
+                fetch('http://localhost:8080/membresia/create', {
+                    method: 'POST',
+                    headers: {
+                    'Content-Type': 'application/json',
+                         },
+                            body: JSON.stringify(datos),
+                                })
+                                .then((response) => {
+                                if (response.ok) {
+                                     return response.json();
+                                 } else {
+                                    throw new Error('Error en la solicitud a la API');
+                                }
+                                })
 
                 toast.current.show({ severity: 'success', summary: 'Successful', detail: 'Product Created', life: 3000 });
 
-            }
-            
-            // setProducts(_products);
-            setProductDialog(false);
-            setProduct(emptyProduct);
-        
+                setProduct(emptyProduct);
+                setProductDialog(false);
+
     };
     
     
@@ -331,89 +308,62 @@ export default function MembresiaComponent() {
 
     const handleInputChangeTipo = (e) => {
 
-        // console.log(e.value.tipo);
+        console.log(e.value);
           
         setSearchQueryTipo(e.value); // Llama a setSearchQuery
 
-        onInputChange(e.value.id, 'pago'); // Llama a onInputChange
+        onInputChange(e.value, 'pago'); // Llama a onInputChange
     }
 
     const handleInputChangeFecha = (e) => {
         const selectedDate = e.value;
         const formattedDate = format(selectedDate, 'yyyy-MM-dd');
 
-        console.log(formattedDate);
-          
+        
+        
+        
+        
 
-        // onInputChange(e.value.id, 'fecha'); // Llama a onInputChange
+
+        onInputChange(formattedDate, 'fechaI'); // Llama a onInputChange
+
+        // let _product = { ...product };
+        // _product['fechaF'] = fechaNueva;
+        // setProduct(_product);
+        // onInputChange(fechaNueva, 'fechaF');
     }
 
+    
 
 
     //---------------------------------------
 
     const editProduct = (product) => {
-        console.log(product);
-        setProduct({ ...product });
-        setProductDialog(true);
-    };
+        fetch('http://localhost:8080/membresia/get/'+product.id_cliente)
 
-    const confirmDeleteProduct = (product) => {
-        setProduct(product);
-        setDeleteProductDialog(true);
-    };
-
-    const deleteProduct = () => {
-        fetch('http://localhost:8080/proveedor/delete/'+product.id, {
-            method: 'DELETE',
-            headers: {
-            'Content-Type': 'application/json',
-                 },
-                    body: JSON.stringify(),
-                        })
-                        .then((response) => {
-                        if (response.ok) {
-                             return response.json();
-                         } else {
-                            throw new Error('Error en la solicitud a la API');
-                        }
-                        })
-
-
-        setDeleteProductDialog(false);
-        setProduct(emptyProduct);
-        toast.current.show({ severity: 'success', summary: 'Successful', detail: 'Product Deleted', life: 3000 });
-    };
-
-    const findIndexById = (id) => {
-        let index = -1;
-
-        for (let i = 0; i < products.length; i++) {
-            if (products[i].id === id) {
-                index = i;
-                break;
+          .then((response) => {
+            if (response.ok) {
+              return response.json(); 
+            } else {
+              throw new Error('Error en la solicitud a la API');
             }
-        }
-
-        return index;
+          })
+          .then((data) => {
+            console.log(data);
+            setCliente(data);
+          })
+          .catch((error) => {
+            console.error('Error al obtener datos de la API:', error);
+          });
+        setclienteDialog(true);
     };
+
+
+
 
 
     const exportCSV = () => {
         dt.current.exportCSV();
-    };
-
-    const confirmDeleteSelected = () => {
-        setDeleteProductsDialog(true);
-    };
-
-    const deleteSelectedProducts = () => {
-        let _products = products.filter((val) => !selectedProducts.includes(val));
-
-        setProducts(_products);
-        setDeleteProductsDialog(false);
-        setSelectedProducts(null);
-        toast.current.show({ severity: 'success', summary: 'Successful', detail: 'Products Deleted', life: 3000 });
     };
 
 
@@ -458,6 +408,11 @@ export default function MembresiaComponent() {
         return <Button label="Exportar" icon="pi pi-upload" className="p-button-help" onClick={exportCSV} />;
     };
 
+    const sumar30Dias = (fecha) => {
+        const fechaParseada = parse(fecha, 'yyyy-MM-dd', new Date());
+        const nuevaFecha = addDays(fechaParseada, 30);
+        return format(nuevaFecha, 'yyyy-MM-dd');
+    };
 
 
     const priceBodyTemplate = (rowData) => {
@@ -468,8 +423,8 @@ export default function MembresiaComponent() {
     const actionBodyTemplate = (rowData) => {
         return (
             <React.Fragment>
-                <Button icon="pi pi-pencil" rounded outlined className="mr-2" onClick={() => editProduct(rowData)} />
-                <Button icon="pi pi-trash" rounded outlined severity="danger" onClick={() => confirmDeleteProduct(rowData)} />
+                <Button icon="pi pi-eye" rounded outlined className="mr-2" onClick={() => editProduct(rowData)} />
+                {/* <Button icon="pi pi-trash" rounded outlined severity="danger" onClick={() => confirmDeleteProduct(rowData)} /> */}
             </React.Fragment>
         );
     };
@@ -487,47 +442,37 @@ export default function MembresiaComponent() {
     const productDialogFooter = (
         <React.Fragment>
             <Button label="Cancelar" icon="pi pi-times" outlined onClick={hideDialog} />
-            <Button label="Guardar" icon="pi pi-check" onClick={saveProduct} />
+            <Button label="ok" icon="pi pi-check"  onClick={saveProduct} />
         </React.Fragment>
     );
 
-
-    const productDialogFooterEditar = (
+    const clienteDialogFooter = (
         <React.Fragment>
-            <Button label="Cancel" icon="pi pi-times" outlined onClick={hideDialog} />
-            <Button label="Save" icon="pi pi-check" onClick={saveProduct} />
+            <Button label="Cerrar" icon="pi pi-times" outlined onClick={hideDialog} />
+            {/* <Button label="ok" icon="pi pi-check"  onClick={saveProduct} /> */}
         </React.Fragment>
     );
 
 
 
+
       
 
 
-      
+    const deleteChip = (e) => {
+
+        removeItem(e.value);
+
+      }
 
 
     const removeItem = (itemToRemove) => {
     const updatedItems = selectedItems.filter((item) => item !== itemToRemove[0]);
+    
     setSelectedItems(updatedItems);
     };
 
    
-
-
-    const deleteProductDialogFooter = (
-        <React.Fragment>
-            <Button label="No" icon="pi pi-times" outlined onClick={hideDeleteProductDialog} />
-            <Button label="Si" icon="pi pi-check" severity="danger" onClick={deleteProduct} />
-        </React.Fragment>
-    );
-    const deleteProductsDialogFooter = (
-        <React.Fragment>
-            <Button label="No" icon="pi pi-times" outlined onClick={hideDeleteProductsDialog} />
-            <Button label="Yes" icon="pi pi-check" severity="danger" onClick={deleteSelectedProducts} />
-        </React.Fragment>
-    );
-
 
 
 
@@ -539,24 +484,20 @@ export default function MembresiaComponent() {
             <div className="card">
                 <Toolbar className="mb-4" left={leftToolbarTemplate} right={rightToolbarTemplate}></Toolbar>
 
-                <DataTable ref={dt} value={products} selection={selectedProducts} onSelectionChange={(e) => setSelectedProducts(e.value)}
+                <DataTable ref={dt} value={clientes} 
                         dataKey="id"  paginator rows={10} rowsPerPageOptions={[5, 10, 25]}
                         paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
                         currentPageReportTemplate="Showing {first} to {last} of {totalRecords} products" globalFilter={globalFilter} header={header}>
 
 
-                    {/* <Column selectionMode="multiple" exportable={false}></Column> */}
-                    <Column field="id"  header="Codigo" sortable style={{ display: 'none' }}></Column>
+                    <Column field="id"  header="Membresia ID" sortable ></Column>
                     <Column field="nombre" header="Nombre" sortable style={{ minWidth: '16rem' }}></Column>
                     <Column field="apellido" header="Apellido" ></Column>
                     <Column field="ci"  header="Carnet" sortable ></Column>
-                    <Column field="telefono"  header="Telefono" sortable ></Column>
-                    {/* <Column field="fecha_nacimiento"  header="Fecha de nacimiento" body={(rowData)=> formatDate(rowData.fecha_nacimiento)} sortable ></Column> */}
+                    <Column field="fecha_inicio"  header="Inicio" sortable ></Column>
+                    <Column field="fecha_fin"  header="Fin" sortable ></Column>
 
-                    <Column field="fecha_nacimiento" header="Fecha de Nacimiento"  sortable style={{ minWidth: "16rem" }}></Column>
-
-
-
+ 
                     <Column body={actionBodyTemplate} exportable={false} style={{ minWidth: '12rem' }}></Column>
                 </DataTable>
             </div>
@@ -585,15 +526,15 @@ export default function MembresiaComponent() {
 
                 
                 <h3>Disciplinas seleccionadas</h3>
-                <Chips value={selectedItems} onRemove={(e) => removeItem(e.value)} />
+                <Chips value={selectedItems} onRemove={(e) => deleteChip(e)} />
 
 
                 <div className="field">
                 <label htmlFor="fecha" className="font-bold">
                     Fecha de inicio
                 </label>
-                <Calendar id="fecha"   value={product.fecha} onChange={(e) => handleInputChangeFecha(e)} showIcon dateFormat="yy-mm-dd" required className={classNames({ "p-invalid": submitted && !product.fecha, })}/>
-                {submitted && !product.fecha && (
+                <Calendar id="fecha"   value={product.fechaI} onChange={(e) => handleInputChangeFecha(e)} showIcon dateFormat="yy-mm-dd" required className={classNames({ "p-invalid": submitted && !product.fechaI, })}/>
+                {submitted && !product.fechaI && (
                     <small className="p-error">
                     La fecha es requerida.
                     </small>
@@ -601,15 +542,24 @@ export default function MembresiaComponent() {
                 </div>
 
                 <div className="field">
+                    {product.fechaI && (
+                        <label htmlFor="fechaF" className="font-bold">
+                        Vence en: {product.fechaF}
+                        </label>
+                    )}
+                </div>
+
+
+                <div className="field">
                     <label htmlFor="tipo" className="font-bold">
                         Tipo de pago
                     </label>
                     
-                    <Dropdown  id='tipo' name='tipo' value={searchQueryTipo} onChange={handleInputChangeTipo} options={allDataTipo} optionLabel="tipo" placeholder="Pago" className="w-full md:w-18rem" />
+                    <Dropdown  id='tipo' name='tipo' value={searchQueryTipo} onChange={handleInputChangeTipo} options={allDataTipo} optionLabel="value" placeholder="Pago" className="w-full md:w-18rem" />
                 </div>
                 
 
-                {/* <div className="formgrid grid">
+                <div className="formgrid grid">
                             <div className="field col">
                                 <label htmlFor="monto" className="font-bold">
                                     Monto
@@ -617,7 +567,7 @@ export default function MembresiaComponent() {
                                 <InputNumber id="monto" value={product.monto} onValueChange={(e) => onInputNumberChange(e, 'monto')}  />
                             </div>
                             
-                </div> */}
+                </div>
 
 
 
@@ -627,18 +577,44 @@ export default function MembresiaComponent() {
 
 
 
-           
-
-            {/* <Dialog visible={deleteProductDialog} style={{ width: '32rem' }} breakpoints={{ '960px': '75vw', '641px': '90vw' }} header="Confirmar" modal footer={deleteProductDialogFooter} onHide={hideDeleteProductDialog}>
-                <div className="confirmation-content">
-                    <i className="pi pi-exclamation-triangle mr-3" style={{ fontSize: '2rem' }} />
-                    {product && (
-                        <span>
-                        Seguro que quieres eliminar <b>{product.empresa}</b>?
-                        </span>
-                    )}
+            {/* visual */}
+            {cliente && (
+                
+            <Dialog visible={clienteDialog} style={{ width: '35rem' }} breakpoints={{ '960px': '75vw', '641px': '90vw' }} header="Detalle del cliente" modal className="p-fluid" footer={clienteDialogFooter} onHide={hideDialog}>
+                <div className="field" style={{ width: '30rem' }}>
+                <label htmlFor="nombre" className="font-bold">
+                    Nombre
+                </label>
+                <InputText id="nombre" value={cliente.datos[0].nombre} disabled />
+                <label htmlFor="nombre" className="font-bold">
+                    Apellido
+                </label>
+                <InputText id="nombre" value={cliente.datos[0].apellido} disabled />
+                <label htmlFor="nombre" className="font-bold">
+                    carnet
+                </label>
+                <InputText id="nombre" value={cliente.datos[0].ci} disabled />
                 </div>
-            </Dialog> */}
+
+                <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'flex-end' }}>
+                <div className="field">
+                    {cliente.valores.map((valor, index) => (
+                    <div key={index}>
+                        <div className="card" style={{ width: '20rem' }}>
+                        <Card title={valor.disciplina}>
+                            <p className="m-0">dia: {valor.dia}</p>
+                            <p className="m-0">horario de entrada: {valor.hora_inicio}</p>
+                            <p className="m-0">horario de salida: {valor.hora_fin}</p>
+                        </Card>
+                        </div>
+                    </div>
+                    ))}
+                </div>
+                </div>
+            </Dialog>
+)}
+
+
 
         
         </div>
