@@ -61,8 +61,8 @@ export default function SideBarPage() {
           icon: "pi pi-fw pi-plus",
         },
         {
-          label: "Right",
-          icon: "pi pi-fw pi-align-right",
+          label: <Link to="/membresia">membresia</Link>,
+          icon: "pi pi-fw pi-plus",
         },
         {
           label: "Center",

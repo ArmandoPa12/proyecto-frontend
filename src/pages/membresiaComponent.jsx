@@ -17,18 +17,22 @@ import { Tag } from 'primereact/tag';
 import SideBarPage from './SideBarPage';
 import { Calendar } from "primereact/calendar";
 
-export default function ClienteComponent() {
+import { Dropdown } from 'primereact/dropdown';
+import { Chips } from 'primereact/chips';
+import { format } from 'date-fns';
+
+
+
+export default function MembresiaComponent() {
 
 
 
     let emptyProduct = {
-        id: null,
-        nombre: '',
-        apellido: '',
-        ci: null,
-        telefono:null,
-        fecha_nacimiento:'',
-        activo:false    
+        cliente: '',
+        disciplina: [],
+        fecha:'',
+        pago: '',
+        monto: ''   
     };
 
 
@@ -43,34 +47,170 @@ export default function ClienteComponent() {
     const toast = useRef(null);
     const dt = useRef(null);
 
-    const [categorias, setCategorias] = useState([]);
+    const [categorias, setCategorias] = useState([null]);
 
-    // obtener productos
-    // useEffect(() => {
-    //     ProductService.getProducts().then((data) => setProducts(data));
-    // }, []);
+  
+    const [selectedItems, setSelectedItems] = useState([]);
+    const [options] = useState([
+    { label: 'Item 1', value: 'item1' },
+    { label: 'Item 2', value: 'item2' },
+    { label: 'Item 3', value: 'item3' },
+    { label: 'Item 4', value: 'item4' },
+    // Agrega más elementos según sea necesario
+    ]);
 
+    const handleChangeDropdown = (e) => {
+        setSelectedItems(e.value);
+    };
+
+
+    const listchips = ["Boxeo","Spinning","Kick Boxing"];
+
+
+
+
+    // search cliente 
+    const [searchResults, setSearchResults] = useState([]);
+    const [searchQuery, setSearchQuery] = useState('');
+    const [allData, setAllData] = useState([]); 
 
     useEffect(() => {
-        
-        fetch('http://localhost:8080/cliente/index')
-
-          .then((response) => {
+        // Realiza la consulta a la API y guarda los resultados en "allData"
+        const fetchData = async () => {
+          try {
+            const response = await fetch('http://localhost:8080/cliente/index');
             if (response.ok) {
-              return response.json(); 
+              const data = await response.json();
+              
+            //   setProducts(data);
+              setAllData(data);
             } else {
-              throw new Error('Error en la solicitud a la API');
+              console.error('Error en la solicitud a la API');
             }
-          })
-          .then((data) => {
-            console.log(data);
-            setProducts(data);
-          })
-          .catch((error) => {
+          } catch (error) {
             console.error('Error al obtener datos de la API:', error);
-          });
-      }, []);
+          }
+        };
       
+        fetchData();
+      }, []);
+
+    
+
+    const handleInputChange = (e) => {
+
+        // console.log(e.value.nombre);
+        setSearchQuery(e.value); // Llama a setSearchQuery
+        console.log("search ",searchQuery);
+
+        onInputChange(e.value.id, 'cliente'); // Llama a onInputChange
+      }
+    //-------------------------------------------
+
+
+
+
+    const [searchResultsDis, setSearchResultsDis] = useState([]);
+    const [searchQueryDis, setSearchQueryDis] = useState('');
+    const [allDataDis, setAllDataDis] = useState([]);
+
+    const [searchResultsTipo, setSearchResultsTipo] = useState([]);
+    const [searchQueryTipo, setSearchQueryTipo] = useState('');
+    const [allDataTipo, setAllDataTipo] = useState([]);
+
+
+    
+      
+      
+
+    // useEffect(() => {
+        
+    //     fetch('http://localhost:8080/cliente/index')
+
+    //       .then((response) => {
+    //         if (response.ok) {
+    //           return response.json(); 
+    //         } else {
+    //           throw new Error('Error en la solicitud a la API');
+    //         }
+    //       })
+    //       .then((data) => {
+    //         console.log(data);
+    //         setProducts(data);
+    //       })
+    //       .catch((error) => {
+    //         console.error('Error al obtener datos de la API:', error);
+    //       });
+    //   }, []);
+      
+
+      // disciplina
+      useEffect(() => {
+        // Realiza la consulta a la API y guarda los resultados en "allData"
+        const fetchData = async () => {
+          try {
+            const response = await fetch('http://localhost:8080/disciplina');
+            if (response.ok) {
+              const data = await response.json();
+              console.log(data);
+            //   setProducts(data);
+              setAllDataDis(data);
+            } else {
+              console.error('Error en la solicitud a la API');
+            }
+          } catch (error) {
+            console.error('Error al obtener datos de la API:', error);
+          }
+        };
+      
+        fetchData();
+      }, []);
+
+
+      const handleInputChangeDis = (e) => {
+
+        console.log(e.value.nombre);
+        if (!selectedItems.includes(e.value.nombre)) {
+            setSelectedItems([...selectedItems, e.value.nombre]);
+          }
+        setSearchQueryDis(e.value); // Llama a setSearchQuery
+        onInputArrayChange(selectedItems, 'disciplina'); // Llama a onInputChange
+      }
+
+    //   const searchInDataDis = (query) => {
+    //     const filteredData = allDataDis.filter((item) => item.name.includes(query));
+    //     setSearchResultsDis(filteredData);
+    //   };
+
+    //   const dropdownOptionsDis = searchResultsDis.map((result) => ({
+    //     label: result.name,
+    //     value: result.name,
+    //   }));
+
+
+
+    //tipo de pago
+    useEffect(() => {
+        // Realiza la consulta a la API y guarda los resultados en "allData"
+        const fetchData = async () => {
+          try {
+            const response = await fetch('http://localhost:8080/tipo');
+            if (response.ok) {
+              const data = await response.json();
+              console.log(data);
+            //   setProducts(data);
+              setAllDataTipo(data);
+            } else {
+              console.error('Error en la solicitud a la API');
+            }
+          } catch (error) {
+            console.error('Error al obtener datos de la API:', error);
+          }
+        };
+      
+        fetchData();
+      }, []);
+
 
     const openNew = () => {
         setProduct(emptyProduct);
@@ -79,6 +219,8 @@ export default function ClienteComponent() {
     };
 
     const hideDialog = () => {
+
+        setProduct(emptyProduct)
         setSubmitted(false);
         setProductDialog(false);
     };
@@ -98,37 +240,40 @@ export default function ClienteComponent() {
 
     const saveProduct = () => {
         setSubmitted(true);
+        
+        // console.log('Datos de product antes de guardar:', selectedItems);
+        
 
-        console.log('Datos de product antes de guardar:', product);
-        if (product.nombre.trim()) {
-            let _products = [...products];
+        
+            console.log("dentro")
+            // let _products = [...products];
 
-            if (product.id) {
+            if (product.cliente) {
 
                 const datos = {
-                    id: product.id,
-                    nombre: product.nombre,
-                    apellido: product.apellido,
-                    ci: product.ci,
-                    telefono: product.telefono,
-                    fecha : product.fecha_nacimiento
+                    cliente: product.cliente,
+                    disciplina: selectedItems,
+                    fecha:product.fecha,
+                    pago: product.pago,
+                    monto: product.monto 
                 };
 
+        
 
-                fetch('http://localhost:8080/cliente/update/'+product.id, {
-                    method: 'PUT',
-                    headers: {
-                    'Content-Type': 'application/json',
-                         },
-                            body: JSON.stringify(datos),
-                                })
-                                .then((response) => {
-                                if (response.ok) {
-                                     return response.json();
-                                 } else {
-                                    throw new Error('Error en la solicitud a la API');
-                                }
-                                })
+                // fetch('http://localhost:8080/cliente/update/'+product.id, {
+                //     method: 'PUT',
+                //     headers: {
+                //     'Content-Type': 'application/json',
+                //          },
+                //             body: JSON.stringify(datos),
+                //                 })
+                //                 .then((response) => {
+                //                 if (response.ok) {
+                //                      return response.json();
+                //                  } else {
+                //                     throw new Error('Error en la solicitud a la API');
+                //                 }
+                //                 })
                 
 
             console.log(datos);
@@ -137,43 +282,75 @@ export default function ClienteComponent() {
             } else {
                 
                 const datos = {
-
-                    nombre: product.nombre,
-                    apellido: product.apellido,
-                    ci: product.ci,
-                    telefono: product.telefono,
-                    fecha : product.fecha_nacimiento
+                    cliente: product.cliente,
+                    disciplina: selectedItems,
+                    fecha:product.fecha,
+                    pago: product.pago,
+                    monto: product.monto 
                 };
 
-                fetch('http://localhost:8080/cliente/create', {
-                    method: 'POST',
-                    headers: {
-                    'Content-Type': 'application/json',
-                         },
-                            body: JSON.stringify(datos),
-                                })
-                                .then((response) => {
-                                if (response.ok) {
-                                     return response.json();
-                                 } else {
-                                    throw new Error('Error en la solicitud a la API');
-                                }
-                                })
+                console.log(datos);
+                
+
+                // fetch('http://localhost:8080/cliente/create', {
+                //     method: 'POST',
+                //     headers: {
+                //     'Content-Type': 'application/json',
+                //          },
+                //             body: JSON.stringify(datos),
+                //                 })
+                //                 .then((response) => {
+                //                 if (response.ok) {
+                //                      return response.json();
+                //                  } else {
+                //                     throw new Error('Error en la solicitud a la API');
+                //                 }
+                //                 })
 
                 toast.current.show({ severity: 'success', summary: 'Successful', detail: 'Product Created', life: 3000 });
-                console.log(datos);
 
             }
             
-            setProducts(_products);
+            // setProducts(_products);
             setProductDialog(false);
             setProduct(emptyProduct);
-        }
+        
     };
     
     
 
+    const onInputChange = (e, name) => {
+        let _product = { ...product };
+        _product[`${name}`] = e;
+        console.log(_product);
+        setProduct(_product);
+       
+    };
 
+    
+
+    const handleInputChangeTipo = (e) => {
+
+        // console.log(e.value.tipo);
+          
+        setSearchQueryTipo(e.value); // Llama a setSearchQuery
+
+        onInputChange(e.value.id, 'pago'); // Llama a onInputChange
+    }
+
+    const handleInputChangeFecha = (e) => {
+        const selectedDate = e.value;
+        const formattedDate = format(selectedDate, 'yyyy-MM-dd');
+
+        console.log(formattedDate);
+          
+
+        // onInputChange(e.value.id, 'fecha'); // Llama a onInputChange
+    }
+
+
+
+    //---------------------------------------
 
     const editProduct = (product) => {
         console.log(product);
@@ -221,16 +398,6 @@ export default function ClienteComponent() {
         return index;
     };
 
-    const createId = () => {
-        let id = '';
-        let chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-
-        for (let i = 0; i < 5; i++) {
-            id += chars.charAt(Math.floor(Math.random() * chars.length));
-        }
-
-        return id;
-    };
 
     const exportCSV = () => {
         dt.current.exportCSV();
@@ -249,20 +416,23 @@ export default function ClienteComponent() {
         toast.current.show({ severity: 'success', summary: 'Successful', detail: 'Products Deleted', life: 3000 });
     };
 
-    const onCategoryChange = (e) => {
+
+    
+
+    const onInputArrayChange = (e, name) => {
+
+
+        // const val = (e.target && e.target.value) || '';
         let _product = { ...product };
 
-        _product['id_categoria'] = e.value;
-        setProduct(_product);
-    };
+        // console.log("input change");
+        // console.log(val.cod);
 
-    const onInputChange = (e, name) => {
-        const val = (e.target && e.target.value) || '';
-        let _product = { ...product };
-        console.log(val);
-        _product[`${name}`] = val;
+        // console.log(val.cliente);
+        _product[`${name}`] = e;
 
         setProduct(_product);
+       
     };
 
     const onInputNumberChange = (e, name) => {
@@ -330,11 +500,19 @@ export default function ClienteComponent() {
     );
 
 
-    const formatDate = (dateString) => {
-        const options = { year: 'numeric', month: 'numeric', day: 'numeric' };
-        return new Date(dateString).toLocaleDateString(undefined, options);
-      };
 
+      
+
+
+      
+
+
+    const removeItem = (itemToRemove) => {
+    const updatedItems = selectedItems.filter((item) => item !== itemToRemove[0]);
+    setSelectedItems(updatedItems);
+    };
+
+   
 
 
     const deleteProductDialogFooter = (
@@ -349,6 +527,10 @@ export default function ClienteComponent() {
             <Button label="Yes" icon="pi pi-check" severity="danger" onClick={deleteSelectedProducts} />
         </React.Fragment>
     );
+
+
+
+
 
     return (
         <div>
@@ -387,60 +569,59 @@ export default function ClienteComponent() {
             
                 
                 <div className="field">
-                    <label htmlFor="empresa" className="font-bold">
+                    <label htmlFor="nombre" className="font-bold">
                         Nombre
                     </label>
-                    <InputText id="nombre" value={product.nombre} onChange={(e) => onInputChange(e, 'nombre')} required autoFocus className={classNames({ 'p-invalid': submitted && !product.apellido })} />
-                    {submitted && !product.empresa && <small className="p-error">Nombre es requerido.</small>}
+                    <Dropdown  id='nombre' name='nombre' value={searchQuery} onChange={handleInputChange} options={allData} optionLabel="nombre" placeholder="Selecciona un cliente" className="w-full md:w-18rem" />
                 </div>
 
                 <div className="field">
-                    <label htmlFor="apellido" className="font-bold">
-                    Apellido
+                    <label htmlFor="disciplina" className="font-bold">
+                        Disciplinas
                     </label>
-                    <InputText id="apellido" value={product.apellido} onChange={(e) => onInputChange(e, 'apellido')} required autoFocus className={classNames({ 'p-invalid': submitted && !product.apellido })} />
-                    {submitted && !product.apellido && <small className="p-error">Apellidp es requerido.</small>}
+                    
+                    <Dropdown multiple  id='disciplina' name='disciplina' value={searchQueryDis} onChange={handleInputChangeDis} options={allDataDis} optionLabel="nombre" placeholder="Selecciona una disciplina" className="w-full md:w-18rem" />
                 </div>
-
-
-
 
                 
+                <h3>Disciplinas seleccionadas</h3>
+                <Chips value={selectedItems} onRemove={(e) => removeItem(e.value)} />
 
-                {/* numeros  */}
-                <div className="field">
-                <label htmlFor="ci" className="font-bold"> CI </label>
-                    <InputNumber inputId="ci" value={product.telefono} onValueChange={(e) => onInputNumberChange(e, "ci")} useGrouping={false} required autoFocus className={classNames({ "p-invalid": submitted && !product.ci })}/>
-                    {submitted && !product.ci && <small className="p-error">El CI es requerido.</small>}
-                </div>
 
                 <div className="field">
-                <label htmlFor="telefono" className="font-bold"> Telefono </label>
-                    <InputNumber inputId="telefono" value={product.telefono} onValueChange={(e) => onInputNumberChange(e, "telefono")} useGrouping={false} required autoFocus className={classNames({ "p-invalid": submitted && !product.telefono })}/>
-                    {submitted && !product.telefono && <small className="p-error">El telefono es requerido.</small>}
-                </div>
-
-                <div className="field">
-                <label htmlFor="fecha_nacimiento" className="font-bold">
-                    Fecha de Nacimiento
+                <label htmlFor="fecha" className="font-bold">
+                    Fecha de inicio
                 </label>
-                <Calendar
-                    id="fecha_nacimiento"
-                    value={product.fecha_nacimiento}
-                    onChange={(e) => onInputChange(e, "fecha_nacimiento")}
-                    showIcon
-                    dateFormat="yy/mm/dd"
-                    required
-                    className={classNames({
-                    "p-invalid": submitted && !product.fecha_nacimiento,
-                    })}
-                />
-                {submitted && !product.fecha_nacimiento && (
+                <Calendar id="fecha"   value={product.fecha} onChange={(e) => handleInputChangeFecha(e)} showIcon dateFormat="yy-mm-dd" required className={classNames({ "p-invalid": submitted && !product.fecha, })}/>
+                {submitted && !product.fecha && (
                     <small className="p-error">
-                    La fecha de nacimiento es requerida.
+                    La fecha es requerida.
                     </small>
                 )}
                 </div>
+
+                <div className="field">
+                    <label htmlFor="tipo" className="font-bold">
+                        Tipo de pago
+                    </label>
+                    
+                    <Dropdown  id='tipo' name='tipo' value={searchQueryTipo} onChange={handleInputChangeTipo} options={allDataTipo} optionLabel="tipo" placeholder="Pago" className="w-full md:w-18rem" />
+                </div>
+                
+
+                {/* <div className="formgrid grid">
+                            <div className="field col">
+                                <label htmlFor="monto" className="font-bold">
+                                    Monto
+                                </label>
+                                <InputNumber id="monto" value={product.monto} onValueChange={(e) => onInputNumberChange(e, 'monto')}  />
+                            </div>
+                            
+                </div> */}
+
+
+
+               
               
             </Dialog> 
 

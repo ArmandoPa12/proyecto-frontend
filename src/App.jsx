@@ -17,6 +17,8 @@ import ProveedorComponent from "./pages/proveedorComponent";
 import InventarioComponent from "./pages/inventarioComponent";
 
 import ClienteComponent from "./pages/clienteComponent";
+import MembresiaComponent from "./pages/membresiaComponent";
+
 
 
 
@@ -37,6 +39,8 @@ function App() {
           <Route path="/inventario" element={<InventarioComponent />} />
 
           <Route path="/cliente" element={<ClienteComponent />} />
+          <Route path="/membresia" element={<MembresiaComponent />} />
+
 
 
 
