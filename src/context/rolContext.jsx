@@ -1,27 +1,29 @@
 import { createContext, useContext, useState } from "react";
 import {
 
-  getRolRequest,
-  deleteRolRequest,
-  createRolRequest,
-  updateRolRequest,
-  getRolesRequest
-} from "../api/roles";
+  getMembresiaRequest,
+  deleteMembresiaRequest,
+  createMembresiaRequest,
+  updateMembresiaRequest,
+  getMembresiasRequest
+} from "../api/membresia";
 
-const RolContext = createContext();
+const MembresiaContext = createContext();
 
-export const useRoles = () => {
-  const context = useContext(RolContext);
-  if (!context) throw new Error("useRoles must be used within a RolProvider");
+export const useMembresia = () => {
+  const context = useContext(MembresiaContext);
+  if (!context) throw new Error("useMembresia must be used within a RolProvider");
   return context;
 };
 
-export function RolProvider({ children }) {
+export function MemebresiaProvider({ children }) {
+
+  
   const [roles, setRoles] = useState([]);
 
-  const getRoles = async () => {
+  const getMemebresia = async () => {
     try {
-      const res = await getRolesRequest();
+      const res = await getMembresiaRequest();
       setRoles(res.data);
     } catch (error) {
       console.error(error);
@@ -30,56 +32,56 @@ export function RolProvider({ children }) {
 
   
 
-  const deleteRol = async (id) => {
-    try {
-      const res = await deleteRolRequest(id);
-      if (res.status === 204) {
-        setRoles((funcionalidades) => roles.filter((rol) => rol.id !== id));
-      }
-    } catch (error) {
-      console.error(error);
-    }
-  };
+  // const deleteRol = async (id) => {
+  //   try {
+  //     const res = await deleteRolRequest(id);
+  //     if (res.status === 204) {
+  //       setRoles((funcionalidades) => roles.filter((rol) => rol.id !== id));
+  //     }
+  //   } catch (error) {
+  //     console.error(error);
+  //   }
+  // };
 
-  const createRol = async (rol) => {
-    try {
-      const res = await createRolRequest(rol);
-      console.log(res.data);
-    } catch (error) {
-      console.error(error);
-    }
-  };
+  // const createRol = async (rol) => {
+  //   try {
+  //     const res = await createRolRequest(rol);
+  //     console.log(res.data);
+  //   } catch (error) {
+  //     console.error(error);
+  //   }
+  // };
 
-  const getRol = async (id) => {
-    try {
-      const res = await getRolRequest(id);
-      return res.data;
-    } catch (error) {
-      console.error(error);
-    }
-  };
+  // const getRol = async (id) => {
+  //   try {
+  //     const res = await getRolRequest(id);
+  //     return res.data;
+  //   } catch (error) {
+  //     console.error(error);
+  //   }
+  // };
 
-  const updateRol= async (id, rol) => {
-    try {
-      await updateRolRequest(id,rol);
-    } catch (error) {
-      console.error(error);
-    }
-  };
+  // const updateRol= async (id, rol) => {
+  //   try {
+  //     await updateRolRequest(id,rol);
+  //   } catch (error) {
+  //     console.error(error);
+  //   }
+  // };
   
 
   return (
-    <RolContext.Provider
+    <MembresiaContext.Provider
       value={{
         roles,
-        getRoles,
-        getRol,
-        deleteRol,
-        updateRol,
-        createRol
+        getMemebresia,
+        // getRol,
+        // deleteRol,
+        // updateRol,
+        // createRol
       }}
     >
       {children}
-    </RolContext.Provider>
+    </MembresiaContext.Provider>
   );
 }
